@@ -7,6 +7,19 @@
 #include <err.h>
 #include <getopt.h>
 
+char * help_msg= "Usage:  sudoku [-a| -o FILE| -v| -V| -h] FILE...\n"
+              "\tsudoku -g[SIZE] [-u| -o FILE| -v| -V| -h]\n"
+              "Solve or generate Sudoku grids of various sizes "
+              "(1, 4, 9, 16, 25, 36, 49, 64)\n\n"
+              "-a, -all\t\t search for all possible solutions\n"
+              "-g[N], --generate[=N]\t generate a grid of size N*N "
+              "(default:9)\n"
+              "-u, --unique\t\t generate a grid with unique solution\n"
+              "-o FILE, --output FILE\t write solution to File\n"
+              "-v, --verbose\t\t verbose output\n"
+              "-V, --version\t\t display version and exit\n"
+              "-h, --help\t\t display this help and exit";
+
 int main(int argc, char* argv[]){
 
   static struct option long_opts[] = {
@@ -26,20 +39,14 @@ int main(int argc, char* argv[]){
     switch (optc)
     {
       case 'h':
-        fputs("Usage:  sudoku [-a| -o FILE| -v| -V| -h] FILE...\n"
-              "\tsudoku -g[SIZE] [-u| -o FILE| -v| -V| -h]\n"
-              "Solve or generate Sudoku grids of various sizes "
-              "(1, 4, 9, 16, 25, 36, 49, 64)\n\n"
-              "-a, -all\t\t search for all possible solutions\n"
-              "-g[N], --generate[=N]\t generate a grid of size N*N "
-              "(default:9)\n"
-              "-u, --unique\t\t generate a grid with unique solution\n"
-              "-o FILE, --output FILE\t write solution to File\n"
-              "-v, --verbose\t\t verbose output\n"
-              "-V, --version\t\t display version and exit\n"
-              "-h, --help\t\t display this help and exit\n"
-          , stdout);
+        fputs(help_msg, stdout);
           exit(EXIT_SUCCESS);
+
+      case 'V':
+        fprintf(stdout, "sudoku %d.%d.%d\n", VERSION, SUBVERSION, REVISION);
+        fputs("Solve or generate sudoku grids "
+              "(possible sizes: 1, 4, 9, 16, 25, 36, 49, 64)", stdout);
+        exit(EXIT_SUCCESS);
 
       default:
         errx (EXIT_FAILURE, "error: invalid option '%s' !", argv[optind -1]);
