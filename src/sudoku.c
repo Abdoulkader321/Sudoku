@@ -6,6 +6,7 @@
 
 #include <err.h>
 #include <getopt.h>
+#include <stdbool.h>
 
 char * help_msg= "Usage:  sudoku [-a| -o FILE| -v| -V| -h] FILE...\n"
               "\tsudoku -g[SIZE] [-u| -o FILE| -v| -V| -h]\n"
@@ -20,8 +21,12 @@ char * help_msg= "Usage:  sudoku [-a| -o FILE| -v| -V| -h] FILE...\n"
               "-V, --version\t\t display version and exit\n"
               "-h, --help\t\t display this help and exit";
 
-int main(int argc, char* argv[]){
 
+
+int main(int argc, char* argv[]){
+  
+  static bool verbose = false;
+  
   static struct option long_opts[] = {
       {"all", 0, 0, 'a'},
       {"generate", 2, 0, 'g'},
@@ -48,10 +53,22 @@ int main(int argc, char* argv[]){
               "(possible sizes: 1, 4, 9, 16, 25, 36, 49, 64)", stdout);
         exit(EXIT_SUCCESS);
 
+      case 'v':
+        verbose = true;
+        break;
+      
+      case 'o':
+        FILE* file = fopen(optarg, "w");
+        if(file == NULL){
+          errx (EXIT_FAILURE, "error: Error while opening file %s", optarg);
+        }
+        printf("Hey Bro");
+        fclose(file);
+        break;
       default:
-        errx (EXIT_FAILURE, "error: invalid option '%s' !", argv[optind -1]);
-    }
+        errx (EXIT_FAILURE, "error: invalid option '%s'\nCheck './sudoku -h' !", 
+        argv[optind -1]);
+    } 
   }
-    
     return 0;
 }
