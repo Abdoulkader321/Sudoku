@@ -3,10 +3,11 @@ EXE = sudoku
 all: sudoku
 
 %:
-	cd src; make; cd ..;
-
+	@cd src && $(MAKE)
+	@cp -f src/$(EXE) ./
 clean:
-	cd src; make clean; cd ..;
+	@cd src && $(MAKE) clean
+	@rm -f $(EXE)
 
 help:
 	@echo "USAGE:"
