@@ -5,6 +5,7 @@ all: sudoku
 %:
 	@cd src && $(MAKE)
 	@cp -f src/$(EXE) ./
+	
 clean:
 	@cd src && $(MAKE) clean
 	@rm -f $(EXE)
