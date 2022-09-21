@@ -7,8 +7,9 @@
 #include <err.h>
 #include <getopt.h>
 #include <stdbool.h>
+#include<unistd.h>
 
-char * help_msg= "Usage:  sudoku [-a| -o FILE| -v| -V| -h] FILE...\n"
+char* help_msg= "Usage:  sudoku [-a| -o FILE| -v| -V| -h] FILE...\n"
               "\tsudoku -g[SIZE] [-u| -o FILE| -v| -V| -h]\n"
               "Solve or generate Sudoku grids of various sizes "
               "(1, 4, 9, 16, 25, 36, 49, 64)\n\n"
@@ -21,12 +22,47 @@ char * help_msg= "Usage:  sudoku [-a| -o FILE| -v| -V| -h] FILE...\n"
               "-V, --version\t\t display version and exit\n"
               "-h, --help\t\t display this help and exit";
 
+/**
+ * Return 
+ *  + true: if `grid_size` is belongs to possible grids size. 
+ *  + false: else
+ * 
+*/
+bool isGivenGridSizeAcceptable(int grid_size){
+  int possible_sizes[] = {1, 4, 9, 16, 25, 35, 49, 64}; 
 
+  for(int i=0; i<8; i++){
+    if(grid_size == possible_sizes[i]){
+      return true;
+    }
+  }
+  return false;
+}
+
+/**
+ * Return 
+ *  + true: if all files given in arguments in solveur mode are readable.
+ *  + false: else.
+*/
+bool isFileReadable(int argc, char** argv){
+  
+  for(int i = optind; i < argc; i++){
+    
+    if(access(argv[i], R_OK) != 0){
+
+      return false;
+    }
+  }
+  return true;
+}
 
 int main(int argc, char* argv[]){
   
-  static bool verbose = false;
-  
+  static bool verbose, unique, generate = false;
+  static bool all = true; 
+
+  int grid_size = 9;
+
   static struct option long_opts[] = {
       {"all", 0, 0, 'a'},
       {"generate", 2, 0, 'g'},
@@ -58,17 +94,63 @@ int main(int argc, char* argv[]){
         break;
       
       case 'o':
-        FILE* file = fopen(optarg, "w");
+        FILE* file = fopen(optarg, "w+");
         if(file == NULL){
           errx (EXIT_FAILURE, "error: Error while opening file %s", optarg);
         }
-        printf("Hey Bro");
         fclose(file);
         break;
+      
+      case 'a':
+        break;
+
+      case 'g':
+        generate = true;
+
+        if(optarg){
+          grid_size = atoi(optarg);
+
+          if(!isGivenGridSizeAcceptable(grid_size)){
+            errx (EXIT_FAILURE, 
+            "error: invalid grid size '%d'. \nPossible sizes: 1, 4, 9, 16, 25, 36, 49, 64.", 
+            grid_size);
+          }
+        }
+        
+        break;
+
+      case 'u':
+        unique = true;
+        break;
+
       default:
         errx (EXIT_FAILURE, "error: invalid option '%s'\nCheck './sudoku -h' !", 
         argv[optind -1]);
-    } 
+    }
   }
+
+    if(generate){
+        fprintf(stdout, "---Generator mode---\n");
+        all = false;
+        return 0;
+
+    }else{
+      if(unique){
+        unique = false;
+        warnx("warning: option 'unique' conflict with solver mode, disabling it!");
+      };
+
+      if(optind == argc){
+        errx (EXIT_FAILURE, "error: no input grid given!");
+      }
+
+      if(isFileReadable(argc, argv)){
+        fprintf(stdout, "---Solveur mode---\n");
+      }else{
+        errx (EXIT_FAILURE, "error: file given in argument is not readeable!");
+      }
+      
+
+    }
     return 0;
 }

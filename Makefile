@@ -8,7 +8,7 @@ all: sudoku
 	
 clean:
 	@cd src && $(MAKE) clean
-	@rm -f $(EXE)
+	@rm -f $(EXE) *.txt
 
 help:
 	@echo "USAGE:"
