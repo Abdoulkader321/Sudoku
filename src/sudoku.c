@@ -31,8 +31,8 @@ char* help_msg= "Usage:  sudoku [-a| -o FILE| -v| -V| -h] FILE...\n"
 bool is_given_grid_size_acceptable(int grid_size){
 	int possible_sizes[] = {1, 4, 9, 16, 25, 35, 49, 64}; 
 
-	for(int i=0; i<8; i++){
-		if(grid_size == possible_sizes[i]){
+	for (int i = 0; i < 8; i++){
+		if (grid_size == possible_sizes[i]){
 			return true;
 		}
 	}
@@ -59,10 +59,8 @@ int main(int argc, char* argv[]){
   };
 
   int optc;
-  while ((optc = getopt_long(argc, argv, "ag::uo:vVh", long_opts, NULL))!= -1)
-  {
-    switch (optc)
-    {
+  while ((optc = getopt_long(argc, argv, "ag::uo:vVh", long_opts, NULL)) != -1){
+    switch (optc){
       case 'h':
         fputs(help_msg, stdout);
 	      exit(EXIT_SUCCESS);
@@ -79,7 +77,7 @@ int main(int argc, char* argv[]){
       
       case 'o':
         FILE* file = fopen(optarg, "w+");
-        if(file == NULL){
+        if (file == NULL){
           errx (EXIT_FAILURE, "error: Error while opening file %s", optarg);
         }
         fclose(file);
@@ -92,10 +90,10 @@ int main(int argc, char* argv[]){
       case 'g':
         generate = true;
 
-        if(optarg){
+        if (optarg){
           grid_size = atoi(optarg);
 
-          if(!is_given_grid_size_acceptable(grid_size)){
+          if (!is_given_grid_size_acceptable(grid_size)){
             errx (EXIT_FAILURE, 
             "error: invalid grid size '%d'. \n"
             "Possible sizes: 1, 4, 9, 16, 25, 36, 49, 64.", grid_size);
@@ -113,26 +111,26 @@ int main(int argc, char* argv[]){
     }
   }
 
-  if(generate){
+  if (generate){
     fprintf(stdout, "---Generator mode---\n");
     solver = false;
     return 0;
 
   }
 
-  if(unique){
+  if (unique){
     unique = false;
     warnx("warning: option 'unique' conflict with solver mode, disabling it!");
   };
 
-  if(optind == argc){
+  if (optind == argc){
     errx (EXIT_FAILURE, "error: no input grid given!");
   }
 
-  // Check if files are readable
-  for(int i = optind; i < argc; i++){
+  /* Check if files are readable */
+  for (int i = optind; i < argc; i++){
 
-    if(access(argv[i], R_OK) != 0){
+    if (access(argv[i], R_OK) != 0){
       errx (EXIT_FAILURE, "error: file '%s' is not readeable!", argv[i]);
     }
 
