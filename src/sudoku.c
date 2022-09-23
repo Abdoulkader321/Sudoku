@@ -109,36 +109,36 @@ int main(int argc, char* argv[]){
 
       default:
         errx (EXIT_FAILURE, "error: invalid option '%s'\nCheck './sudoku -h' !", 
-        argv[optind -1]);
-          }
-        }
-
-        if(generate){
-          fprintf(stdout, "---Generator mode---\n");
-          solver = false;
-          return 0;
-
-        }else{
-          if(unique){
-            unique = false;
-            warnx("warning: option 'unique' conflict with solver mode, disabling it!");
-          };
-
-          if(optind == argc){
-            errx (EXIT_FAILURE, "error: no input grid given!");
-          }
-
-          // Check if files are readable
-          for(int i = optind; i < argc; i++){
-
-            if(access(argv[i], R_OK) != 0){
-              errx (EXIT_FAILURE, "error: file '%s' is not readeable!", argv[i]);
-            }
-
-          }
-
-          fprintf(stdout, "---Solveur mode---\n");
-      
+          argv[optind -1]);
     }
+  }
+
+  if(generate){
+    fprintf(stdout, "---Generator mode---\n");
+    solver = false;
     return 0;
+
+  }
+
+  if(unique){
+    unique = false;
+    warnx("warning: option 'unique' conflict with solver mode, disabling it!");
+  };
+
+  if(optind == argc){
+    errx (EXIT_FAILURE, "error: no input grid given!");
+  }
+
+  // Check if files are readable
+  for(int i = optind; i < argc; i++){
+
+    if(access(argv[i], R_OK) != 0){
+      errx (EXIT_FAILURE, "error: file '%s' is not readeable!", argv[i]);
+    }
+
+  }
+
+  fprintf(stdout, "---Solveur mode---\n");
+
+  return 0;
 }
