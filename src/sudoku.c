@@ -22,6 +22,51 @@ char* help_msg= "Usage:  sudoku [-a| -o FILE| -v| -V| -h] FILE...\n"
 	"-V, --version\t\t display version and exit\n"
 	"-h, --help\t\t display this help and exit";
 
+
+static void grid_print (const grid_t* grid, FILE* fd){
+  int grid_size = (int) grid->size;
+
+  for(int i = 0; i < grid_size; i++){
+    for(int j = 0; j < grid_size; j++){
+      fprintf(fd, "%d ", grid->cells[i][j]);
+    }
+    fprintf(fd, "\n");
+  }
+}
+
+
+static grid_t* grid_alloc (size_t size){
+  
+  grid_t* grid = malloc(sizeof (grid_t));
+  
+  grid->size = size;
+  grid->cells = (char**) malloc(size * sizeof(char));
+
+  for(int i = 0; i < (int) size; i++){
+    grid->cells[i] = (char*) malloc(size * sizeof(char));
+  }
+
+  return grid;
+}
+
+static void grid_free (grid_t * grid){
+  for(int i = 0; i < (int) grid->size; i++){
+    free(grid->cells[i]);
+  }
+  free(grid->cells);
+}
+
+void test_malloc(int grid_size){
+  grid_t* grid = grid_alloc(grid_size);
+
+  for(int i = 0; i < grid_size; i++){
+    for(int j = 0; j < grid_size; j++){
+      grid->cells[i][j] = (char) i;
+    }
+  }
+  grid_print(grid, stdout);
+}
+
 /**
  * Return 
  *  + true: if `grid_size` is belongs to possible grids size. 
@@ -29,7 +74,7 @@ char* help_msg= "Usage:  sudoku [-a| -o FILE| -v| -V| -h] FILE...\n"
  * 
 */
 bool is_given_grid_size_acceptable(int grid_size){
-	int possible_sizes[] = {1, 4, 9, 16, 25, 35, 49, 64}; 
+	int possible_sizes[] = {1, 4, 9, 16, 25, 36, 49, 64}; 
 
 	for (int i = 0; i < 8; i++){
 		if (grid_size == possible_sizes[i]){
@@ -114,8 +159,10 @@ int main(int argc, char* argv[]){
   if (generate){
     fprintf(stdout, "---Generator mode---\n");
     solver = false;
-    return 0;
 
+    test_malloc(grid_size);
+
+    return 0;
   }
 
   if (unique){
