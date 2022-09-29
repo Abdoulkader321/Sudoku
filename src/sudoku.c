@@ -24,10 +24,9 @@ char* help_msg= "Usage:  sudoku [-a| -o FILE| -v| -V| -h] FILE...\n"
 
 
 static void grid_print (const grid_t* grid, FILE* fd){
-  int grid_size = (int) grid->size;
 
-  for(int i = 0; i < grid_size; i++){
-    for(int j = 0; j < grid_size; j++){
+  for(size_t i = 0; i < grid->size; i++){
+    for(size_t j = 0; j < grid->size; j++){
       fprintf(fd, "%d ", grid->cells[i][j]);
     }
     fprintf(fd, "\n");
@@ -39,18 +38,23 @@ static grid_t* grid_alloc (size_t size){
   
   grid_t* grid = malloc(sizeof (grid_t));
   
-  grid->size = size;
-  grid->cells = (char**) malloc(size * sizeof(char));
+  if (grid == NULL){
+    errx (EXIT_FAILURE, "error: Error while allocating grid structure");
+  }
 
-  for(int i = 0; i < (int) size; i++){
-    grid->cells[i] = (char*) malloc(size * sizeof(char));
+  grid->size = size;
+  grid->cells = malloc(size * sizeof (char*));
+
+
+  for(size_t i = 0; i < size; i++){
+    grid->cells[i] = malloc(size * sizeof (char));
   }
 
   return grid;
 }
 
 static void grid_free (grid_t * grid){
-  for(int i = 0; i < (int) grid->size; i++){
+  for(size_t i = 0; i < grid->size; i++){
     free(grid->cells[i]);
   }
   free(grid->cells);
@@ -61,7 +65,8 @@ void test_malloc(int grid_size){
 
   for(int i = 0; i < grid_size; i++){
     for(int j = 0; j < grid_size; j++){
-      grid->cells[i][j] = (char) i;
+      
+      grid->cells[i][j] = (char) j+1;
     }
   }
   grid_print(grid, stdout);
