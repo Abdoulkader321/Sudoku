@@ -6,8 +6,11 @@
 
 #include <err.h>
 #include <getopt.h>
+#include <regex.h>
 #include <string.h>
 #include <unistd.h>
+
+#define MAX_GRID_SIZE 64
 
 char* help_msg= "Usage:  sudoku [-a| -o FILE| -v| -V| -h] FILE...\n"
   "\tsudoku -g[SIZE] [-u| -o FILE| -v| -V| -h]\n"
@@ -27,12 +30,88 @@ static void grid_print (const grid_t* grid, FILE* fd){
 
   for(size_t i = 0; i < grid->size; i++){
     for(size_t j = 0; j < grid->size; j++){
-      fprintf(fd, "%d ", grid->cells[i][j]);
+      fprintf(fd, "%c ", grid->cells[i][j]);
     }
     fprintf(fd, "\n");
   }
 }
 
+static bool check_char (const grid_t* grid, const char c){
+
+  switch (grid->size){
+    case 1:
+      return (c == '1') || (c == '_');
+      break;
+
+    case 4:
+      return ('1' <= c && c <= '4') || (c == '_');
+      break;
+    
+    case 9:
+      return ('1' <= c && c <= '9') || (c == '_');
+      break;
+
+    case 16:
+      return ('1' <= c && c <= '9') || ('A' <= c && c <= 'G') || (c == '_');
+      break;
+
+    case 25:
+      return ('1' <= c && c <= '9') || ('A' <= c && c <= 'P') || (c == '_');
+      break;
+
+    case 36:
+      return ('1' <= c && c <= '9') || ('A' <= c && c <= 'Z') || (c == '@') 
+        || (c == '_');
+      break;
+    
+    case 49:
+      return ('1' <= c && c <= '9') || ('A' <= c && c <= 'Z') 
+          || ('a' <= c && c <= 'm') || (c == '@') ||(c == '_');
+      break;
+    
+    case 64:
+      return ('1' <= c && c <= '9') || ('A' <= c && c <= 'Z') || 
+        ('a' <= c && c <= 'z') || (c == '@') || (c == '*') || (c == '&') 
+        ||(c == '_');
+      break;
+
+    default:
+      break;
+  }
+
+  return true;
+}
+
+static grid_t* file_parser (char* filename){
+
+  FILE* file;
+  file = fopen(filename, "r");
+  if (file == NULL){
+    errx (EXIT_FAILURE, "error: Error while opening file %s", filename);
+  }
+  char c;
+  size_t grid_size = 0;
+  char first_row[MAX_GRID_SIZE];
+  while ((c = fgetc(file)) != '\n'){
+    if(c != ' '){
+      first_row[grid_size] = c;
+      grid_size++;
+    }
+  }
+  
+  grid_t* grid = grid_alloc(grid_size);
+
+  for(size_t i = 0; i< grid_size; i++){
+    grid->cells[0][i] = first_row[i];
+  }
+
+
+  grid_print(grid, stdout);
+
+  fclose(file);
+
+  return grid;
+}
 
 static grid_t* grid_alloc (size_t size){
   
@@ -70,6 +149,8 @@ void test_malloc(int grid_size){
     }
   }
   grid_print(grid, stdout);
+
+  printf("check_char %d", check_char(grid, '*'));
 }
 
 /**
@@ -165,7 +246,6 @@ int main(int argc, char* argv[]){
     fprintf(stdout, "---Generator mode---\n");
     solver = false;
 
-    test_malloc(grid_size);
 
     return 0;
   }
@@ -189,6 +269,8 @@ int main(int argc, char* argv[]){
   }
 
   fprintf(stdout, "---Solveur mode---\n");
+
+  file_parser(argv[optind]);
 
   return 0;
 }
