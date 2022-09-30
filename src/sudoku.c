@@ -90,7 +90,7 @@ static grid_t* file_parser (char* filename){
     errx (EXIT_FAILURE, "error: Error while opening file %s", filename);
   }
   char c;
-  size_t grid_size = 0;
+  int grid_size = 0;
   char first_row[MAX_GRID_SIZE];
   while ((c = fgetc(file)) != '\n'){
     if(c != ' '){
@@ -98,14 +98,62 @@ static grid_t* file_parser (char* filename){
       grid_size++;
     }
   }
-  
-  grid_t* grid = grid_alloc(grid_size);
 
-  for(size_t i = 0; i< grid_size; i++){
+  grid_t* grid = grid_alloc((size_t) grid_size);
+
+  for(int i = 0; i< grid_size; i++){
     grid->cells[0][i] = first_row[i];
   }
 
+  int nb_column_grid = 0;
+  int nb_row_grid = 1;
 
+  while ((c = fgetc(file)) != EOF){
+
+    if(c != ' ' && c != '\n'){
+      nb_row_grid++;
+      nb_column_grid++;
+
+      if (nb_row_grid > grid_size){
+        errx (EXIT_FAILURE, 
+              "error: grid has more than expected number of line (%d)", 
+              grid_size);
+      }
+
+      grid->cells[nb_row_grid - 1][0] = c;
+      
+      while ((c = fgetc(file)) != '\n'){
+        
+        if(c != ' '){
+          nb_column_grid++;
+
+          if (nb_column_grid > grid_size){
+            errx (EXIT_FAILURE, "error: line %d is malformed! "
+              "(More number of column)\n"
+              "Number of column got: %d\n"
+              "Expected number of column: %d)",
+              nb_row_grid, nb_column_grid, grid_size);
+          }
+
+          grid->cells[nb_row_grid - 1][nb_column_grid - 1] = c;
+        
+        }
+      }
+
+      if (nb_column_grid != grid_size){
+        errx (EXIT_FAILURE, "error: line %d is malformed! "
+          "Grid has %d missing column(s)", grid_size, grid_size - nb_column_grid);
+      }
+
+      nb_column_grid = 0;
+    }
+    
+  }
+
+  if (nb_row_grid != grid_size){
+    errx (EXIT_FAILURE, "error: grid has %d missing line(s)", grid_size - nb_row_grid);
+  }
+  
   grid_print(grid, stdout);
 
   fclose(file);
