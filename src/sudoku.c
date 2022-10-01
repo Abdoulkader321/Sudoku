@@ -104,7 +104,6 @@ static grid_t* file_parser (char* filename){
 
   while ((c = fgetc(file)) != EOF){
 
-  
     switch (c){
       case '#':
         is_comment_line = true;
@@ -112,11 +111,13 @@ static grid_t* file_parser (char* filename){
 
       case ' ':
         break;
+
+      case '\t':
+        break;
       
       case '\n':
-        is_comment_line = false;
-        
-        if (!first_row_readed){
+
+        if (!is_comment_line && !first_row_readed){
           first_row_readed = true;
 
           grid = grid_alloc((size_t) grid_size);
@@ -126,7 +127,10 @@ static grid_t* file_parser (char* filename){
             if (check_char(grid, first_row[i])){
               grid->cells[0][i] = first_row[i];
             }else{
-              errx (EXIT_FAILURE, "error: wrong character '%c' at line %d!", first_row[i], nb_row_grid);
+              warnx ("error: wrong character '%c' at line %d!\n", 
+                      first_row[i], nb_row_grid);
+              
+              return NULL;
             }
           
           }
@@ -134,18 +138,21 @@ static grid_t* file_parser (char* filename){
         }else {
 
           if ((0 < nb_column_grid) && (nb_column_grid < grid_size)){
-            errx (EXIT_FAILURE, "error: line %d is malformed! "
-            "Grid has %d missing column(s)", grid_size, grid_size - nb_column_grid);
+            warnx ("error: line %d is malformed! "
+            "Grid has %d missing column(s)\n", grid_size, grid_size - nb_column_grid);
+            
+            return NULL;
           }
 
           nb_column_grid = 0;
 
         }
-  
+
+        is_comment_line = false;
         break;
       
       default:
-
+      
         if(!is_comment_line){
           
           if(!first_row_readed){
@@ -161,23 +168,27 @@ static grid_t* file_parser (char* filename){
             }
 
             if (nb_row_grid > grid_size){
-              errx (EXIT_FAILURE, 
-                    "error: grid has more than expected number of line (%d)", 
+              warnx ("error: grid has more than expected number of line (%d)\n", 
                     grid_size);
+              
+              return NULL;
             }
 
             if (nb_column_grid > grid_size){
-              errx (EXIT_FAILURE, "error: line %d is malformed! "
-                "(More number of column)\n"
-                "Number of column got: %d\n"
-                "Expected number of column: %d)",
+              warnx ("error: line %d is malformed! (More number of column)\n"
+                "Number of column got: %d\nExpected number of column: %d\n",
                 nb_row_grid, nb_column_grid, grid_size);
+              
+              return NULL;
             }
             
             if (check_char(grid, c)){
               grid->cells[nb_row_grid - 1][nb_column_grid - 1] = c;
             }else{
-              errx (EXIT_FAILURE, "error: wrong character '%c' at line %d column %d!", c, nb_row_grid, nb_column_grid);
+              warnx ("error: wrong character '%c' at line %d column %d!\n", 
+                c, nb_row_grid, nb_column_grid);
+              
+              return NULL;
             }
           }
         }
@@ -185,15 +196,16 @@ static grid_t* file_parser (char* filename){
     }
 
   }
-
+  fclose(file);
+  
   if (nb_row_grid != grid_size){
-    errx (EXIT_FAILURE, "error: grid has %d missing line(s)", grid_size - nb_row_grid);
+    warnx ("error: grid has %d missing line(s)", 
+      grid_size - nb_row_grid);
+    
+    return NULL;
   }
   
-  grid_print(grid, stdout);
-
-  fclose(file);
-  return NULL;
+  return grid;
 }
 
 static grid_t* grid_alloc (size_t size){
@@ -353,7 +365,18 @@ int main(int argc, char* argv[]){
 
   fprintf(stdout, "---Solveur mode---\n");
 
-  file_parser(argv[optind]);
+  for (int i = optind; i < argc; i++){
+    
+    fprintf(stdout, "---Grid %d: %s---\n", i - optind + 1, argv[i]);
+
+    grid_t* grid = file_parser(argv[i]);
+
+    if(grid != NULL){
+      grid_print(grid, stdout);
+    }
+
+    fprintf(stdout, "-----------\n");
+  }
 
   return 0;
 }
