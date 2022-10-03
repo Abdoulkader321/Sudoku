@@ -26,6 +26,23 @@ char* help_msg= "Usage:  sudoku [-a| -o FILE| -v| -V| -h] FILE...\n"
 	"-h, --help\t\t display this help and exit";
 
 
+/**
+ * Return 
+ *  + true: if `grid_size` is belongs to possible grids size. 
+ *  + false: else
+ * 
+*/
+bool is_given_grid_size_acceptable(int grid_size){
+	int possible_sizes[] = {1, 4, 9, 16, 25, 36, 49, 64}; 
+
+	for (int i = 0; i < 8; i++){
+		if (grid_size == possible_sizes[i]){
+			return true;
+		}
+	}
+  return false;
+}
+
 static void grid_print (const grid_t* grid, FILE* fd){
 
   for(size_t i = 0; i < grid->size; i++){
@@ -96,6 +113,8 @@ static grid_t* file_parser (char* filename){
   grid_t* grid = NULL;
 
   bool is_comment_line = false; /** if it is an comment line*/
+  bool any_sudoku_char_read_yet = true;
+
   char first_row[MAX_GRID_SIZE];
   bool first_row_readed = false; /** if the first row is already readed */
 
@@ -117,8 +136,15 @@ static grid_t* file_parser (char* filename){
       
       case '\n':
 
-        if (!is_comment_line && !first_row_readed){
+        if (!is_comment_line && !any_sudoku_char_read_yet && !first_row_readed){
           first_row_readed = true;
+
+          if(!is_given_grid_size_acceptable(grid_size)){
+            warnx ("error: invalid grid size '%d'. \n"
+                  "Possible sizes: 1, 4, 9, 16, 25, 36, 49, 64.\n", grid_size);
+              
+            return NULL;
+          }
 
           grid = grid_alloc((size_t) grid_size);
 
@@ -139,7 +165,7 @@ static grid_t* file_parser (char* filename){
 
           if ((0 < nb_column_grid) && (nb_column_grid < grid_size)){
             warnx ("error: line %d is malformed! "
-            "Grid has %d missing column(s)\n", grid_size, grid_size - nb_column_grid);
+            "Grid has %d missing column(s)\n", nb_row_grid, grid_size - nb_column_grid);
             
             return NULL;
           }
@@ -149,12 +175,15 @@ static grid_t* file_parser (char* filename){
         }
 
         is_comment_line = false;
+        any_sudoku_char_read_yet = true;
         break;
       
       default:
-      
+
         if(!is_comment_line){
           
+          any_sudoku_char_read_yet = false;
+
           if(!first_row_readed){
             first_row[grid_size] = c;
             grid_size++;
@@ -204,6 +233,14 @@ static grid_t* file_parser (char* filename){
     
     return NULL;
   }
+
+  if(nb_column_grid > 0 && nb_column_grid != grid_size){
+    // when a non empty line ends with EOF
+    warnx ("error: grid has %d missing column(s)", 
+      grid_size - nb_column_grid);
+    
+    return NULL;
+  }
   
   return grid;
 }
@@ -248,22 +285,7 @@ void test_malloc(int grid_size){
   printf("check_char %d", check_char(grid, '*'));
 }
 
-/**
- * Return 
- *  + true: if `grid_size` is belongs to possible grids size. 
- *  + false: else
- * 
-*/
-bool is_given_grid_size_acceptable(int grid_size){
-	int possible_sizes[] = {1, 4, 9, 16, 25, 36, 49, 64}; 
 
-	for (int i = 0; i < 8; i++){
-		if (grid_size == possible_sizes[i]){
-			return true;
-		}
-	}
-  return false;
-}
 
 
 int main(int argc, char* argv[]){
@@ -365,17 +387,24 @@ int main(int argc, char* argv[]){
 
   fprintf(stdout, "---Solveur mode---\n");
 
+  bool is_one_grid_valid = false; /** At least, one grid is valid */
+
   for (int i = optind; i < argc; i++){
     
-    fprintf(stdout, "---Grid %d: %s---\n", i - optind + 1, argv[i]);
+    fprintf(stdout, "------Grid %d------\n", i - optind + 1);
 
     grid_t* grid = file_parser(argv[i]);
 
     if(grid != NULL){
+      is_one_grid_valid = true;
       grid_print(grid, stdout);
     }
 
-    fprintf(stdout, "-----------\n");
+    fprintf(stdout, "-------------------\n");
+  }
+
+  if(!is_one_grid_valid){
+    errx (EXIT_FAILURE, "error: Any grid is valid. Nothing to solve!");
   }
 
   return 0;
