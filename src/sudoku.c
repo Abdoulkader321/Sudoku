@@ -58,48 +58,48 @@ static void grid_print(const grid_t *grid, FILE *fd) {
  */
 static bool check_char(const grid_t *grid, const char c) {
 
+  bool res = false;
+
   switch (grid->size) {
-  case 1:
-    return (c == '1') || (c == '_');
-    break;
-
-  case 4:
-    return ('1' <= c && c <= '4') || (c == '_');
-    break;
-
-  case 9:
-    return ('1' <= c && c <= '9') || (c == '_');
-    break;
-
-  case 16:
-    return ('1' <= c && c <= '9') || ('A' <= c && c <= 'G') || (c == '_');
-    break;
-
-  case 25:
-    return ('1' <= c && c <= '9') || ('A' <= c && c <= 'P') || (c == '_');
-    break;
-
-  case 36:
-    return ('1' <= c && c <= '9') || ('A' <= c && c <= 'Z') || (c == '@') ||
-           (c == '_');
-    break;
-
-  case 49:
-    return ('1' <= c && c <= '9') || ('A' <= c && c <= 'Z') ||
-           ('a' <= c && c <= 'm') || (c == '@') || (c == '_');
-    break;
 
   case 64:
-    return ('1' <= c && c <= '9') || ('A' <= c && c <= 'Z') ||
-           ('a' <= c && c <= 'z') || (c == '@') || (c == '*') || (c == '&') ||
-           (c == '_');
+    res |= ('n' <= c && c <= 'z') || (c == '*') || (c == '&');
+    // FALL THROUGH
+
+  case 49:
+    res |= ('a' <= c && c <= 'm');
+    // FALL THROUGH
+
+  case 36:
+    res |= ('Q' <= c && c <= 'Z') || (c == '@');
+    // FALL THROUGH
+
+  case 25:
+    res |= ('H' <= c && c <= 'P');
+    // FALL THROUGH
+
+  case 16:
+    res |= ('A' <= c && c <= 'G');
+    // FALL THROUGH
+
+  case 9:
+    res |= ('5' <= c && c <= '9');
+    // FALL THROUGH
+
+  case 4:
+    res |= ('2' <= c && c <= '4');
+    // FALL THROUGH
+
+  case 1:
+    res |= (c == '1') || (c == '_');
+    // FALL THROUGH
     break;
 
   default:
     break;
   }
 
-  return true;
+  return res;
 }
 
 /**
@@ -296,8 +296,7 @@ int main(int argc, char *argv[]) {
       {"help", 0, 0, 'h'},    {0, 0, 0, 0}};
 
   int optc;
-  while ((optc = getopt_long(argc, argv, "ag::uo:vVh", long_opts, NULL)) !=
-         -1) {
+  while ((optc = getopt_long(argc, argv, "ag::uo:vVh", long_opts, NULL)) != -1) {
     switch (optc) {
     case 'h':
       fputs(help_msg, stdout);
