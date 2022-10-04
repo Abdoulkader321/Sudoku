@@ -274,10 +274,12 @@ static grid_t *grid_alloc(size_t size) {
  * Free the memory of the struct `grid`
  */
 static void grid_free(grid_t *grid) {
+
   for (size_t i = 0; i < grid->size; i++) {
     free(grid->cells[i]);
   }
   free(grid->cells);
+  free(grid);
 }
 
 int main(int argc, char *argv[]) {
@@ -296,7 +298,8 @@ int main(int argc, char *argv[]) {
       {"help", 0, 0, 'h'},    {0, 0, 0, 0}};
 
   int optc;
-  while ((optc = getopt_long(argc, argv, "ag::uo:vVh", long_opts, NULL)) != -1) {
+  while ((optc = getopt_long(argc, argv, "ag::uo:vVh", long_opts, NULL)) !=
+         -1) {
     switch (optc) {
     case 'h':
       fputs(help_msg, stdout);
@@ -378,25 +381,21 @@ int main(int argc, char *argv[]) {
 
   fprintf(program_output, "---Solveur mode---\n");
 
-  bool is_one_grid_valid = false; /** At least, if one grid is valid */
+  bool are_all_grids_valid = true;
 
   for (int i = optind; i < argc; i++) {
 
     fprintf(program_output, "------Grid %d--------\n", i - optind + 1);
 
     grid_t *grid = file_parser(argv[i]);
+    are_all_grids_valid &= (grid != NULL);
 
     if (grid != NULL) {
-      is_one_grid_valid = true;
       grid_print(grid, program_output);
     }
 
     fprintf(program_output, "-------------------\n");
   }
 
-  if (!is_one_grid_valid) {
-    errx(EXIT_FAILURE, "error: Any grid is valid. Nothing to solve!");
-  }
-
-  return 0;
+  return are_all_grids_valid ? EXIT_SUCCESS : EXIT_FAILURE;
 }
