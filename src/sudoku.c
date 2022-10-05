@@ -102,6 +102,34 @@ static bool check_char(const grid_t *grid, const char c) {
   return res;
 }
 
+static grid_t *write_first_row_to_grid(char *first_row, int grid_size) {
+
+  grid_t *grid;
+
+  if (!is_given_grid_size_acceptable(grid_size)) {
+    warnx("error: invalid grid size '%d'.\n"
+          "Possible sizes: 1, 4, 9, 16, 25, 36, 49, 64.\n",
+          grid_size);
+
+    return NULL;
+  }
+
+  grid = grid_alloc((size_t)grid_size);
+
+  for (int i = 0; i < grid_size; i++) {
+
+    if (check_char(grid, first_row[i])) {
+      grid->cells[0][i] = first_row[i];
+    } else {
+      warnx("error: wrong character '%c' at line 1!\n", first_row[i]);
+
+      return NULL;
+    }
+  }
+
+  return grid;
+}
+
 /**
  * This parser returns:
  *  + a pointer to the grid if it's a valid grid.
@@ -127,7 +155,7 @@ static grid_t *file_parser(char *filename) {
 
   int grid_size = 0;
   int nb_column_grid = 0;
-  int nb_row_grid = 1;
+  int nb_row_grid = 0;
 
   while ((c = fgetc(file)) != EOF) {
 
@@ -144,38 +172,26 @@ static grid_t *file_parser(char *filename) {
 
     case '\n':
 
-      if (!is_comment_line && !any_sudoku_char_read_yet && !first_row_readed) {
-        first_row_readed = true;
+      if (!any_sudoku_char_read_yet) {
 
-        if (!is_given_grid_size_acceptable(grid_size)) {
-          warnx("error: invalid grid size '%d'.\n"
-                "Possible sizes: 1, 4, 9, 16, 25, 36, 49, 64.\n",
-                grid_size);
+        if (!first_row_readed) {
+          first_row_readed = true;
 
-          return NULL;
-        }
+          grid = write_first_row_to_grid(first_row, grid_size);
 
-        grid = grid_alloc((size_t)grid_size);
+          if (grid == NULL) {
+            return NULL;
+          }
 
-        for (int i = 0; i < grid_size; i++) {
+        } else {
 
-          if (check_char(grid, first_row[i])) {
-            grid->cells[0][i] = first_row[i];
-          } else {
-            warnx("error: wrong character '%c' at line %d!\n", first_row[i],
-                  nb_row_grid);
+          if (nb_column_grid < grid_size) {
+            warnx("error: line %d is malformed! "
+                  "Grid has %d missing column(s)\n",
+                  nb_row_grid, grid_size - nb_column_grid);
 
             return NULL;
           }
-        }
-      } else {
-
-        if ((0 < nb_column_grid) && (nb_column_grid < grid_size)) {
-          warnx("error: line %d is malformed! "
-                "Grid has %d missing column(s)\n",
-                nb_row_grid, grid_size - nb_column_grid);
-
-          return NULL;
         }
 
         nb_column_grid = 0;
@@ -191,6 +207,12 @@ static grid_t *file_parser(char *filename) {
 
         any_sudoku_char_read_yet = false;
 
+        nb_column_grid++;
+
+        if (nb_column_grid == 1) {
+          nb_row_grid++;
+        }
+
         if (!first_row_readed) {
 
           first_row[grid_size] = c;
@@ -198,23 +220,17 @@ static grid_t *file_parser(char *filename) {
 
           break;
         } else {
-          nb_column_grid++;
-
-          if (nb_column_grid == 1) {
-            nb_row_grid++;
-          }
 
           if (nb_row_grid > grid_size) {
-            warnx("error: grid has more than expected number of line (%d)\n",
-                  grid_size);
+            warnx("error: grid has %d line(s) more than expected.\n",
+                  nb_row_grid - grid_size);
 
             return NULL;
           }
 
           if (nb_column_grid > grid_size) {
-            warnx("error: line %d is malformed! (More number of column)\n"
-                  "Number of column got: %d\nExpected number of column: %d\n",
-                  nb_row_grid, nb_column_grid, grid_size);
+            warnx("error: grid has %d column(s) more than expected.\n",
+                  nb_column_grid - grid_size);
 
             return NULL;
           }
@@ -233,6 +249,22 @@ static grid_t *file_parser(char *filename) {
     }
   }
   fclose(file);
+
+  if ((nb_row_grid == 1) && (nb_column_grid != 0)) {
+    /** This happens when the first line do not end with `\n`*/
+
+    grid = write_first_row_to_grid(first_row, grid_size);
+
+    if (grid == NULL) {
+      return NULL;
+    }
+  }
+
+  if (grid_size == 0) {
+    warnx("error: grid is empty");
+
+    return NULL;
+  }
 
   if (nb_row_grid != grid_size) {
     warnx("error: grid has %d missing line(s)", grid_size - nb_row_grid);
@@ -373,7 +405,7 @@ int main(int argc, char *argv[]) {
     fprintf(program_output, "---Generator mode---\n");
     solver = false;
 
-    return 0;
+    return EXIT_SUCCESS;
   }
 
   if (unique) {
