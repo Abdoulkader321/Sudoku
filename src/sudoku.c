@@ -3,37 +3,25 @@
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <unistd.h>
 
 #include <err.h>
 #include <getopt.h>
-#include <regex.h>
 #include <string.h>
-#include <unistd.h>
 
 #define MAX_GRID_SIZE 64
 
-char *help_msg = "Usage:  sudoku [-a| -o FILE| -v| -V| -h] FILE...\n"
-                 "\tsudoku -g[SIZE] [-u| -o FILE| -v| -V| -h]\n"
-                 "Solve or generate Sudoku grids of various sizes "
-                 "(1, 4, 9, 16, 25, 36, 49, 64)\n\n"
-                 "-a, -all\t\t search for all possible solutions\n"
-                 "-g[N], --generate[=N]\t generate a grid of size N*N "
-                 "(default:9)\n"
-                 "-u, --unique\t\t generate a grid with unique solution\n"
-                 "-o FILE, --output FILE\t write solution to File\n"
-                 "-v, --verbose\t\t verbose output\n"
-                 "-V, --version\t\t display version and exit\n"
-                 "-h, --help\t\t display this help and exit";
+static bool verbose = false;
 
 /**
  * Return
  *  + true: if `grid_size` is belongs to possible grids size.
  *  + false: else
  */
-bool is_given_grid_size_acceptable(int grid_size) {
-  int possible_sizes[] = {1, 4, 9, 16, 25, 36, 49, 64};
-
-  for (int i = 0; i < 8; i++) {
+static bool is_given_grid_size_acceptable(int grid_size) {
+  const int possible_sizes[] = {1, 4, 9, 16, 25, 36, 49, 64};
+  
+  for (int i = 0; i < (int)(sizeof(possible_sizes)/sizeof(int)); i++) {
     if (grid_size == possible_sizes[i]) {
       return true;
     }
@@ -330,18 +318,34 @@ static void grid_free(grid_t *grid) {
 
 int main(int argc, char *argv[]) {
 
-  static bool verbose, unique, all, generate = false;
-  static bool solver = true;
+  const char *help_msg =
+      "Usage:  sudoku [-a| -o FILE| -v| -V| -h] FILE...\n"
+      "\tsudoku -g[SIZE] [-u| -o FILE| -v| -V| -h]\n"
+      "Solve or generate Sudoku grids of various sizes "
+      "(1, 4, 9, 16, 25, 36, 49, 64)\n\n"
+      "-a, -all\t\t search for all possible solutions\n"
+      "-g[N], --generate[=N]\t generate a grid of size N*N "
+      "(default:9)\n"
+      "-u, --unique\t\t generate a grid with unique solution\n"
+      "-o FILE, --output FILE\t write solution to File\n"
+      "-v, --verbose\t\t verbose output\n"
+      "-V, --version\t\t display version and exit\n"
+      "-h, --help\t\t display this help and exit";
+
+  bool unique = false;
+  bool all = false;
+  bool generate = false;
+  bool solver = true;
 
   int grid_size = 9;
 
   FILE *program_output = stdout;
 
-  static struct option long_opts[] = {
-      {"all", 0, 0, 'a'},     {"generate", 2, 0, 'g'},
-      {"unique", 0, 0, 'u'},  {"output", 1, 0, 'o'},
-      {"verbose", 0, 0, 'v'}, {"version", 0, 0, 'V'},
-      {"help", 0, 0, 'h'},    {0, 0, 0, 0}};
+  const struct option long_opts[] = {
+      {"all", no_argument, 0, 'a'},     {"generate", optional_argument, 0, 'g'},
+      {"unique", no_argument, 0, 'u'},  {"output", required_argument, 0, 'o'},
+      {"verbose", no_argument, 0, 'v'}, {"version", no_argument, 0, 'V'},
+      {"help", no_argument, 0, 'h'},    {NULL, 0, NULL, 0}};
 
   int optc;
   while ((optc = getopt_long(argc, argv, "ag::uo:vVh", long_opts, NULL)) !=
@@ -411,7 +415,7 @@ int main(int argc, char *argv[]) {
   if (unique) {
     unique = false;
     warnx("warning: option 'unique' conflict with solver mode, disabling it!");
-  };
+  }
 
   if (optind == argc) {
     errx(EXIT_FAILURE, "error: no input grid given!");
