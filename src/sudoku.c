@@ -20,8 +20,9 @@ static bool verbose = false;
  */
 static bool is_given_grid_size_acceptable(int grid_size) {
   const int possible_sizes[] = {1, 4, 9, 16, 25, 36, 49, 64};
+  const int len_possible_sizes = sizeof(possible_sizes) / sizeof(int);
 
-  for (int i = 0; i < (int)(sizeof(possible_sizes) / sizeof(int)); i++) {
+  for (int i = 0; i < len_possible_sizes; i++) {
     if (grid_size == possible_sizes[i]) {
       return true;
     }
@@ -33,14 +34,16 @@ static bool is_given_grid_size_acceptable(int grid_size) {
  * Writes the `grid` in the file descriptor `fd`.
  */
 static void grid_print(const grid_t *grid, FILE *fd) {
+  const int grid_size = grid->size;
 
-  for (size_t i = 0; i < grid->size; i++) {
-    for (size_t j = 0; j < grid->size; j++) {
+  for (int i = 0; i < grid_size; i++) {
+    for (int j = 0; j < grid_size; j++) {
       fprintf(fd, "%c ", grid->cells[i][j]);
     }
     fprintf(fd, "\n");
   }
 }
+
 /**
  * Depending of the `grid` size, checks if char `c` satisfy conditions
  */
@@ -84,12 +87,15 @@ static bool check_char(const grid_t *grid, const char c) {
     break;
 
   default:
-    break;
+    errx(EXIT_FAILURE, "error: invalid grid size `%d`.\n", (int)grid->size);
   }
 
   return res;
 }
 
+/**
+ * Return a grid that contains the first row of input grid
+ */
 static grid_t *write_first_row_to_grid(char *first_row, int grid_size) {
 
   grid_t *grid;
@@ -135,9 +141,8 @@ static grid_t *file_parser(char *filename) {
   grid_t *grid = NULL;
   char first_row[MAX_GRID_SIZE];
 
-  bool is_comment_line = false;         /** if it's an comment line*/
-  bool first_row_readed = false;        /** if the first row of sudoku
-                                          is already readed */
+  bool is_comment_line = false;
+  bool first_row_readed = false;
   bool any_sudoku_char_read_yet = true; /** Bool to check if any sudoku
                                           char is not read yet on a line*/
 
@@ -225,6 +230,7 @@ static grid_t *file_parser(char *filename) {
 
           if (check_char(grid, c)) {
             grid->cells[nb_row_grid - 1][nb_column_grid - 1] = c;
+
           } else {
             warnx("error: wrong character '%c' at line %d column %d!\n", c,
                   nb_row_grid, nb_column_grid);
@@ -262,6 +268,7 @@ static grid_t *file_parser(char *filename) {
 
   if (nb_column_grid > 0 && nb_column_grid != grid_size) {
     /** when a non empty line ends with EOF */
+
     warnx("error: grid has %d missing column(s)", grid_size - nb_column_grid);
 
     return NULL;
@@ -345,11 +352,12 @@ int main(int argc, char *argv[]) {
       {"all", no_argument, 0, 'a'},     {"generate", optional_argument, 0, 'g'},
       {"unique", no_argument, 0, 'u'},  {"output", required_argument, 0, 'o'},
       {"verbose", no_argument, 0, 'v'}, {"version", no_argument, 0, 'V'},
-      {"help", no_argument, 0, 'h'},    {NULL, 0, NULL, 0}};
+      {"help", no_argument, 0, 'h'},    {NULL, no_argument, NULL, 0}};
 
   int optc;
   while ((optc = getopt_long(argc, argv, "ag::uo:vVh", long_opts, NULL)) !=
          -1) {
+
     switch (optc) {
     case 'h':
       fputs(help_msg, stdout);
@@ -373,7 +381,6 @@ int main(int argc, char *argv[]) {
         errx(EXIT_FAILURE, "error: Error while opening file %s", optarg);
       }
 
-      /** fclose_file*/
       break;
 
     case 'a':
@@ -448,6 +455,8 @@ int main(int argc, char *argv[]) {
 
     fprintf(program_output, "-------------------\n");
   }
+
+  fclose(program_output);
 
   return are_all_grids_valid ? EXIT_SUCCESS : EXIT_FAILURE;
 }
