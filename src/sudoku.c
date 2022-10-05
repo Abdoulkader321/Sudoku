@@ -192,6 +192,7 @@ static grid_t *file_parser(char *filename) {
         any_sudoku_char_read_yet = false;
 
         if (!first_row_readed) {
+
           first_row[grid_size] = c;
           grid_size++;
 
@@ -249,6 +250,10 @@ static grid_t *file_parser(char *filename) {
   return grid;
 }
 
+static void grid_alloc_msg_error() {
+  errx(EXIT_FAILURE, "error: Error while allocating grid structure");
+}
+
 /**
  * Allocate and return a pointer to an grid_t struct of size*size cells.
  */
@@ -257,14 +262,22 @@ static grid_t *grid_alloc(size_t size) {
   grid_t *grid = malloc(sizeof(grid_t));
 
   if (grid == NULL) {
-    errx(EXIT_FAILURE, "error: Error while allocating grid structure");
+    grid_alloc_msg_error();
   }
 
   grid->size = size;
   grid->cells = malloc(size * sizeof(char *));
 
+  if (grid->cells == NULL) {
+    grid_alloc_msg_error();
+  }
+
   for (size_t i = 0; i < size; i++) {
     grid->cells[i] = malloc(size * sizeof(char));
+
+    if (grid->cells[i] == NULL) {
+      grid_alloc_msg_error();
+    }
   }
 
   return grid;
@@ -278,6 +291,7 @@ static void grid_free(grid_t *grid) {
   for (size_t i = 0; i < grid->size; i++) {
     free(grid->cells[i]);
   }
+
   free(grid->cells);
   free(grid);
 }
@@ -385,13 +399,15 @@ int main(int argc, char *argv[]) {
 
   for (int i = optind; i < argc; i++) {
 
-    fprintf(program_output, "------Grid %d--------\n", i - optind + 1);
+    fprintf(program_output, "------Grid %d: %s--------\n", i - optind + 1,
+            argv[i]);
 
     grid_t *grid = file_parser(argv[i]);
     are_all_grids_valid &= (grid != NULL);
 
     if (grid != NULL) {
       grid_print(grid, program_output);
+      grid_free(grid);
     }
 
     fprintf(program_output, "-------------------\n");
