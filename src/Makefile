@@ -3,11 +3,13 @@ CPPFLAGS = -I../include -DDEBUG
 
 EXE = sudoku
 
-
 all: sudoku
 
-%: %.c %.h
+sudoku: sudoku.o
 	$(CC) $(CFLAGS) -o $@ $< ;
+
+sudoku.o: sudoku.c sudoku.h 
+	$(CC) $(CFLAGS) $(CPPFLAGS) -c $< ;
 
 clean:
 	rm -f *.o $(EXE) 

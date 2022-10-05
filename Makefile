@@ -2,7 +2,7 @@ EXE = sudoku
 
 all: sudoku
 
-%:
+sudoku:
 	@cd src && $(MAKE)
 	@cp -f src/$(EXE) ./
 	
