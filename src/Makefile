@@ -1,6 +1,5 @@
-CFLAGS = -std=c11 -Wall -Wextra -g -O2
+CFLAGS = -std=c11 -Wall -Wextra -g -O2 -pedantic
 CPPFLAGS = -I../include -DDEBUG
-LDFLAGS = -lm
 
 EXE = sudoku
 
@@ -8,7 +7,7 @@ EXE = sudoku
 all: sudoku
 
 %: %.c %.h
-	$(CC) $(CFLAGS) -o $@ $< $(LDFLAGS);
+	$(CC) $(CFLAGS) -o $@ $< ;
 
 clean:
 	rm -f *.o $(EXE) 

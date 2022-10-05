@@ -20,8 +20,8 @@ static bool verbose = false;
  */
 static bool is_given_grid_size_acceptable(int grid_size) {
   const int possible_sizes[] = {1, 4, 9, 16, 25, 36, 49, 64};
-  
-  for (int i = 0; i < (int)(sizeof(possible_sizes)/sizeof(int)); i++) {
+
+  for (int i = 0; i < (int)(sizeof(possible_sizes) / sizeof(int)); i++) {
     if (grid_size == possible_sizes[i]) {
       return true;
     }
@@ -367,13 +367,13 @@ int main(int argc, char *argv[]) {
       break;
 
     case 'o':
-      FILE *file = fopen(optarg, "w+");
-      if (file == NULL) {
+      program_output = fopen(optarg, "w+");
+
+      if (program_output == NULL) {
         errx(EXIT_FAILURE, "error: Error while opening file %s", optarg);
       }
 
-      program_output = file;
-      // fclose(file);
+      /** fclose_file*/
       break;
 
     case 'a':
