@@ -366,7 +366,7 @@ int main(int argc, char *argv[]) {
     case 'V':
       fprintf(stdout, "sudoku %d.%d.%d\n", VERSION, SUBVERSION, REVISION);
       fputs("Solve or generate sudoku grids "
-            "(possible sizes: 1, 4, 9, 16, 25, 36, 49, 64)",
+            "(possible sizes: 1, 4, 9, 16, 25, 36, 49, 64)\n",
             stdout);
       exit(EXIT_SUCCESS);
 
@@ -432,7 +432,8 @@ int main(int argc, char *argv[]) {
   for (int i = optind; i < argc; i++) {
 
     if (access(argv[i], R_OK) != 0) {
-      errx(EXIT_FAILURE, "error: file '%s' is not readeable!", argv[i]);
+      errx(EXIT_FAILURE, "error: file '%s' is not readeable or do not exist!",
+           argv[i]);
     }
   }
 
