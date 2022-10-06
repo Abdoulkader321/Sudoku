@@ -4,7 +4,7 @@
 PROJECT_PATH="./sudoku"
 #Stores the previous working directory
 PREVIOUS_PWD=${PWD}
-ERROR_FILE_TEST=${PREVIOUS_PWD}/stderr_file
+ERROR_FILE_TEST=${PREVIOUS_PWD}/stderr_file.txt
 
 #Your test folders
 #Seul TEST_PATH est nécéssaire pour les tests homework 1 et 2
@@ -262,36 +262,36 @@ echo "Expected result: EXIT_FAILURE and stderr is written"
 ./sudoku --output 1> /dev/null 2> $ERROR_FILE_TEST
 test_exit_failure $?
 
-echo "* Check './sudoku -o test.sku'"
+echo "* Check './sudoku -o test.txt'"
 echo "Expected result: EXIT_FAILURE and stderr is written"
-./sudoku -o $PREVIOUS_PWD/test.sku 1> /dev/null 2> $ERROR_FILE_TEST
+./sudoku -o $PREVIOUS_PWD/test.txt 1> /dev/null 2> $ERROR_FILE_TEST
 test_exit_failure $?
 
-echo "* Check './sudoku --output test.sku'"
+echo "* Check './sudoku --output test.txt'"
 echo "Expected result: EXIT_FAILURE and stderr is written"
-./sudoku --output $PREVIOUS_PWD/test.sku 1> /dev/null 2> $ERROR_FILE_TEST
+./sudoku --output $PREVIOUS_PWD/test.txt 1> /dev/null 2> $ERROR_FILE_TEST
 test_exit_failure $?
 
-echo "* Check './sudoku -o test.sku grid-01-size_1-pass.sku'"
+echo "* Check './sudoku -o test.txt grid-01-size_1-pass.sku'"
 echo "Expected result: EXIT_SUCCESS"
-./sudoku -o $PREVIOUS_PWD/test.sku $TEST_PATH/grid-01-size_1-pass.sku 1> /dev/null 2> $ERROR_FILE_TEST
+./sudoku -o $PREVIOUS_PWD/test.txt $TEST_PATH/grid-01-size_1-pass.sku 1> /dev/null 2> $ERROR_FILE_TEST
 test_exit_success $?
 
-echo "* Check './sudoku --output test.sku grid-01-size_1-pass.sku'"
+echo "* Check './sudoku --output test.txt grid-01-size_1-pass.sku'"
 echo "Expected result: EXIT_SUCCESS"
-./sudoku --output $PREVIOUS_PWD/test.sku $TEST_PATH/grid-01-size_1-pass.sku 1> /dev/null 2> $ERROR_FILE_TEST
+./sudoku --output $PREVIOUS_PWD/test.txt $TEST_PATH/grid-01-size_1-pass.sku 1> /dev/null 2> $ERROR_FILE_TEST
 test_exit_success $?
 
 
-echo "* Check './sudoku -o /test.sku grid-01-size_1-pass.sku'"
+echo "* Check './sudoku -o /test.txt grid-01-size_1-pass.sku'"
 echo "Expected result: EXIT_FAILURE and stderr is written"
-./sudoku -o /test.sku $TEST_PATH/grid-01-size_1-pass.sku 1> /dev/null 2> $ERROR_FILE_TEST
+./sudoku -o /test.txt $TEST_PATH/grid-01-size_1-pass.sku 1> /dev/null 2> $ERROR_FILE_TEST
 #test if file was created ?
 test_exit_failure $?
 
-echo "* Check './sudoku --output /test.sku grid-01-size_1-pass.sku'"
+echo "* Check './sudoku --output /test.txt grid-01-size_1-pass.sku'"
 echo "Expected result: EXIT_FAILURE and stderr is written"
-./sudoku --output /test.sku $TEST_PATH/grid-01-size_1-pass.sku 1> /dev/null 2> $ERROR_FILE_TEST
+./sudoku --output /test.txt $TEST_PATH/grid-01-size_1-pass.sku 1> /dev/null 2> $ERROR_FILE_TEST
 #test if file was create ?
 test_exit_failure $?
 
