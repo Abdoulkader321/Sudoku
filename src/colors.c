@@ -1,5 +1,6 @@
 #include "colors.h"
 
+#include <stdbool.h>
 #include <stdio.h>
 
 #include <limits.h>
@@ -26,15 +27,27 @@ colors_t colors_discard(const colors_t colors, const size_t color_id) {
   return (colors ^ colors_set(color_id));
 }
 
-int main(void) {
+bool colors_is_in(const colors_t colors, const size_t color_id) {
 
-  // printf("colors_full %lu\n", colors_full(6));
-
-  // printf("colors_set %ld\n", colors_set(4));
-
-  // printf("colors_add %ld\n", colors_add(12, 1));
-
-  //printf("colors_discard %ld\n", colors_discard(31, 4));
-
-  return 0;
+  return colors & (1 << color_id);
 }
+
+colors_t colors_negate(const colors_t colors) { return ~colors; }
+
+colors_t colors_and(const colors_t colors1, const colors_t colors2) {
+  return colors1 & colors2;
+}
+
+colors_t colors_or(const colors_t colors1, const colors_t colors2) {
+  return colors1 | colors2;
+}
+
+colors_t colors_xor(const colors_t colors1, const colors_t colors2) {
+  return colors1 ^ colors2;
+}
+
+colors_t colors_is_equal(const colors_t colors1, const colors_t colors2) {
+  return colors1 == colors2;
+}
+
+int main(void) { return EXIT_SUCCESS; }
