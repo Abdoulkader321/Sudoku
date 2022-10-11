@@ -19,8 +19,15 @@ colors_t colors_negate(const colors_t colors);
 colors_t colors_and(const colors_t colors1, const colors_t colors2);
 colors_t colors_or(const colors_t colors1, const colors_t colors2);
 colors_t colors_xor(const colors_t colors1, const colors_t colors2);
+
 colors_t colors_substract(const colors_t colors1, const colors_t colors2);
 
 colors_t colors_is_equal(const colors_t colors1, const colors_t colors2);
+
+bool colors_is_subset(const colors_t colors1, const colors_t colors2);
+
+bool colors_is_singleton(const colors_t colors);
+
+size_t colors_count(const colors_t colors);
 
 #endif /* COLORS_H */

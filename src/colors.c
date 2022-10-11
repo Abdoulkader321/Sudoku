@@ -50,4 +50,29 @@ colors_t colors_is_equal(const colors_t colors1, const colors_t colors2) {
   return colors1 == colors2;
 }
 
-int main(void) { return EXIT_SUCCESS; }
+bool colors_is_singleton(const colors_t colors) {
+
+  /** Any power of 2 when subtracted by 1 is all 1 (Source: stackoverflow) */
+  return colors == 0 ? false : (colors & (colors - 1)) == 0;
+}
+
+size_t colors_count(const colors_t colors) {
+
+  size_t count = 0;
+
+  colors_t our_colors = colors;
+
+  while (our_colors != 0) {
+    count += our_colors & 1; /**looking the first bit*/
+    our_colors >>= 1;
+  }
+
+  return count;
+}
+
+int main(void) {
+
+  printf("colors_count %ld", colors_count(12));
+
+  return EXIT_SUCCESS;
+}
