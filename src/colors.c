@@ -1,9 +1,10 @@
 #include "colors.h"
 
-#include <stdbool.h>
 #include <stdio.h>
 
-#include <limits.h>
+#include <time.h>
+
+#define ULONG_MAX 0xffffffff
 
 colors_t colors_full(const size_t size) {
 
@@ -32,7 +33,9 @@ bool colors_is_in(const colors_t colors, const size_t color_id) {
   return colors & (1 << color_id);
 }
 
-colors_t colors_negate(const colors_t colors) { return ~colors; }
+colors_t colors_negate(const colors_t colors) {
+  return colors_xor(colors, ULONG_MAX);
+}
 
 colors_t colors_and(const colors_t colors1, const colors_t colors2) {
   return colors1 & colors2;
@@ -70,9 +73,62 @@ size_t colors_count(const colors_t colors) {
   return count;
 }
 
-int main(void) {
+bool colors_is_subset(const colors_t colors1, const colors_t colors2) {
 
-  printf("colors_count %ld", colors_count(12));
-
-  return EXIT_SUCCESS;
+  return (colors2 | colors1) == colors2;
 }
+
+colors_t colors_substract(const colors_t colors1, const colors_t colors2) {
+
+  return colors_xor(colors1, colors2);
+}
+
+colors_t colors_rightmost(const colors_t colors) {
+
+  return colors & colors_negate(colors - 1);
+}
+
+colors_t colors_leftmost(const colors_t colors) {
+
+  if (colors == 0) {
+    return 0;
+  }
+
+  int pos = -1;
+
+  colors_t our_colors = colors;
+
+  while (our_colors != 0) {
+    our_colors >>= 1;
+    pos++;
+  }
+
+  return colors_set(pos);
+}
+
+colors_t colors_random(const colors_t colors) {
+
+  if (colors == 0) {
+    return 0;
+  }
+
+  size_t nb_colors = colors_count(colors);
+
+  srand(time(NULL));
+  size_t random_color = (rand() % nb_colors) + 1;
+
+  int pos = -1;
+
+  while (random_color != 0) {
+
+    pos++;
+
+    if (colors_is_in(colors, pos)) {
+      random_color--;
+    }
+  }
+
+  return colors_set(pos);
+}
+
+int main(void) { return EXIT_SUCCESS; }

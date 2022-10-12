@@ -30,4 +30,10 @@ bool colors_is_singleton(const colors_t colors);
 
 size_t colors_count(const colors_t colors);
 
+colors_t colors_rightmost(const colors_t colors);
+
+colors_t colors_leftmost(const colors_t colors);
+
+colors_t colors_random(const colors_t colors);
+
 #endif /* COLORS_H */
