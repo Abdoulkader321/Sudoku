@@ -91,7 +91,7 @@ colors_t colors_rightmost(const colors_t colors) {
 colors_t colors_leftmost(const colors_t colors) {
 
   if (colors == 0) {
-    return 0;
+    return colors_empty();
   }
 
   int pos = -1;
@@ -109,7 +109,7 @@ colors_t colors_leftmost(const colors_t colors) {
 colors_t colors_random(const colors_t colors) {
 
   if (colors == 0) {
-    return 0;
+    return colors_empty();
   }
 
   size_t nb_colors = colors_count(colors);
