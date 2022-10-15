@@ -1,4 +1,5 @@
 #include "sudoku.h"
+#include "grid.c"
 
 #include <stdbool.h>
 #include <stdio.h>
@@ -14,106 +15,25 @@
 static bool verbose = false;
 
 /**
- * Return
- *  + true: if `grid_size` is belongs to possible grids size.
- *  + false: else
- */
-static bool is_given_grid_size_acceptable(int grid_size) {
-  const int possible_sizes[] = {1, 4, 9, 16, 25, 36, 49, 64};
-  const int len_possible_sizes = sizeof(possible_sizes) / sizeof(int);
-
-  for (int i = 0; i < len_possible_sizes; i++) {
-    if (grid_size == possible_sizes[i]) {
-      return true;
-    }
-  }
-  return false;
-}
-
-/**
- * Writes the `grid` in the file descriptor `fd`.
- */
-static void grid_print(const grid_t *grid, FILE *fd) {
-  const int grid_size = grid->size;
-
-  for (int i = 0; i < grid_size; i++) {
-    for (int j = 0; j < grid_size; j++) {
-      fprintf(fd, "%c ", grid->cells[i][j]);
-    }
-    fprintf(fd, "\n");
-  }
-}
-
-/**
- * Depending of the `grid` size, checks if char `c` satisfy conditions
- */
-static bool check_char(const grid_t *grid, const char c) {
-
-  bool res = false;
-
-  switch (grid->size) {
-
-  case 64:
-    res |= ('n' <= c && c <= 'z') || (c == '*') || (c == '&');
-    // FALL THROUGH
-
-  case 49:
-    res |= ('a' <= c && c <= 'm');
-    // FALL THROUGH
-
-  case 36:
-    res |= ('Q' <= c && c <= 'Z') || (c == '@');
-    // FALL THROUGH
-
-  case 25:
-    res |= ('H' <= c && c <= 'P');
-    // FALL THROUGH
-
-  case 16:
-    res |= ('A' <= c && c <= 'G');
-    // FALL THROUGH
-
-  case 9:
-    res |= ('5' <= c && c <= '9');
-    // FALL THROUGH
-
-  case 4:
-    res |= ('2' <= c && c <= '4');
-    // FALL THROUGH
-
-  case 1:
-    res |= (c == '1') || (c == '_');
-    // FALL THROUGH
-    break;
-
-  default:
-    errx(EXIT_FAILURE, "error: invalid grid size `%d`.\n", (int)grid->size);
-  }
-
-  return res;
-}
-
-/**
  * Return a grid that contains the first row of input grid
  */
 static grid_t *write_first_row_to_grid(char *first_row, int grid_size) {
 
   grid_t *grid;
 
-  if (!is_given_grid_size_acceptable(grid_size)) {
+  if (!grid_check_size(grid_size)) {
     warnx("error: invalid grid size '%d'.\n"
           "Possible sizes: 1, 4, 9, 16, 25, 36, 49, 64.\n",
           grid_size);
 
     return NULL;
   }
-
   grid = grid_alloc((size_t)grid_size);
 
   for (int i = 0; i < grid_size; i++) {
 
-    if (check_char(grid, first_row[i])) {
-      grid->cells[0][i] = first_row[i];
+    if (grid_check_char(grid, first_row[i])) {
+      grid_set_cell(grid, 0, i, first_row[i]);
     } else {
       warnx("error: wrong character '%c' at line 1!\n", first_row[i]);
 
@@ -169,7 +89,6 @@ static grid_t *file_parser(char *filename) {
 
         if (!first_row_readed) {
           first_row_readed = true;
-
           grid = write_first_row_to_grid(first_row, grid_size);
 
           if (grid == NULL) {
@@ -207,7 +126,6 @@ static grid_t *file_parser(char *filename) {
         }
 
         if (!first_row_readed) {
-
           first_row[grid_size] = c;
           grid_size++;
 
@@ -228,8 +146,8 @@ static grid_t *file_parser(char *filename) {
             return NULL;
           }
 
-          if (check_char(grid, c)) {
-            grid->cells[nb_row_grid - 1][nb_column_grid - 1] = c;
+          if (grid_check_char(grid, c)) {
+            grid_set_cell(grid, nb_row_grid - 1, nb_column_grid - 1, c);
 
           } else {
             warnx("error: wrong character '%c' at line %d column %d!\n", c,
@@ -275,52 +193,6 @@ static grid_t *file_parser(char *filename) {
   }
 
   return grid;
-}
-
-static void grid_alloc_msg_error() {
-  errx(EXIT_FAILURE, "error: Error while allocating grid structure");
-}
-
-/**
- * Allocate and return a pointer to an grid_t struct of size*size cells.
- */
-static grid_t *grid_alloc(size_t size) {
-
-  grid_t *grid = malloc(sizeof(grid_t));
-
-  if (grid == NULL) {
-    grid_alloc_msg_error();
-  }
-
-  grid->size = size;
-  grid->cells = malloc(size * sizeof(char *));
-
-  if (grid->cells == NULL) {
-    grid_alloc_msg_error();
-  }
-
-  for (size_t i = 0; i < size; i++) {
-    grid->cells[i] = malloc(size * sizeof(char));
-
-    if (grid->cells[i] == NULL) {
-      grid_alloc_msg_error();
-    }
-  }
-
-  return grid;
-}
-
-/**
- * Free the memory of the struct `grid`
- */
-static void grid_free(grid_t *grid) {
-
-  for (size_t i = 0; i < grid->size; i++) {
-    free(grid->cells[i]);
-  }
-
-  free(grid->cells);
-  free(grid);
 }
 
 int main(int argc, char *argv[]) {
@@ -393,7 +265,7 @@ int main(int argc, char *argv[]) {
       if (optarg) {
         grid_size = atoi(optarg);
 
-        if (!is_given_grid_size_acceptable(grid_size)) {
+        if (!grid_check_size(grid_size)) {
           errx(EXIT_FAILURE,
                "error: invalid grid size '%d'. \n"
                "Possible sizes: 1, 4, 9, 16, 25, 36, 49, 64.",
@@ -447,6 +319,7 @@ int main(int argc, char *argv[]) {
             argv[i]);
 
     grid_t *grid = file_parser(argv[i]);
+
     are_all_grids_valid &= (grid != NULL);
 
     if (grid != NULL) {

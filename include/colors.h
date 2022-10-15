@@ -20,7 +20,7 @@ colors_t colors_and(const colors_t colors1, const colors_t colors2);
 colors_t colors_or(const colors_t colors1, const colors_t colors2);
 colors_t colors_xor(const colors_t colors1, const colors_t colors2);
 
-colors_t colors_substract(const colors_t colors1, const colors_t colors2);
+colors_t colors_subtract(const colors_t colors1, const colors_t colors2);
 
 colors_t colors_is_equal(const colors_t colors1, const colors_t colors2);
 

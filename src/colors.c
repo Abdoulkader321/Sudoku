@@ -4,18 +4,18 @@
 
 #include <time.h>
 
-#define ULONG_MAX 0xffffffff
+#define ULONG_MAX 0xffffffffffffffff
 
 colors_t colors_full(const size_t size) {
 
-  return (size == 0 || size > MAX_COLORS) ? 0 : ~(ULONG_MAX << size);
+  return (size >= MAX_COLORS) ? ULONG_MAX : (1UL << size) - 1;
 }
 
 colors_t colors_empty(void) { return 0; }
 
 colors_t colors_set(const size_t color_id) {
 
-  return color_id >= MAX_COLORS ? 0 : 1 << color_id;
+  return color_id >= MAX_COLORS ? 0 : 1UL << color_id;
 }
 
 colors_t colors_add(const colors_t colors, const size_t color_id) {
@@ -25,12 +25,12 @@ colors_t colors_add(const colors_t colors, const size_t color_id) {
 
 colors_t colors_discard(const colors_t colors, const size_t color_id) {
 
-  return (colors ^ colors_set(color_id));
+  return colors == 0 ? 0 : (colors ^ colors_set(color_id));
 }
 
 bool colors_is_in(const colors_t colors, const size_t color_id) {
 
-  return colors & (1 << color_id);
+  return (colors & colors_set(color_id)) != 0;
 }
 
 colors_t colors_negate(const colors_t colors) {
@@ -75,12 +75,12 @@ size_t colors_count(const colors_t colors) {
 
 bool colors_is_subset(const colors_t colors1, const colors_t colors2) {
 
-  return (colors2 | colors1) == colors2;
+  return colors1 == 0 ? 0 : (colors2 | colors1) == colors2;
 }
 
-colors_t colors_substract(const colors_t colors1, const colors_t colors2) {
+colors_t colors_subtract(const colors_t colors1, const colors_t colors2) {
 
-  return colors_xor(colors1, colors2);
+  return (colors1 ^ colors2) & colors1;
 }
 
 colors_t colors_rightmost(const colors_t colors) {
@@ -130,5 +130,3 @@ colors_t colors_random(const colors_t colors) {
 
   return colors_set(pos);
 }
-
-int main(void) { return EXIT_SUCCESS; }
