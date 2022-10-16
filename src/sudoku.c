@@ -94,7 +94,6 @@ static grid_t *file_parser(char *filename) {
           if (grid == NULL) {
             return NULL;
           }
-
         } else {
 
           if (nb_column_grid < grid_size) {
@@ -148,7 +147,6 @@ static grid_t *file_parser(char *filename) {
 
           if (grid_check_char(grid, c)) {
             grid_set_cell(grid, nb_row_grid - 1, nb_column_grid - 1, c);
-
           } else {
             warnx("error: wrong character '%c' at line %d column %d!\n", c,
                   nb_row_grid, nb_column_grid);
@@ -219,6 +217,7 @@ int main(int argc, char *argv[]) {
   int grid_size = 9;
 
   FILE *program_output = stdout;
+  char *output_file_name = NULL;
 
   const struct option long_opts[] = {
       {"all", no_argument, 0, 'a'},     {"generate", optional_argument, 0, 'g'},
@@ -247,11 +246,7 @@ int main(int argc, char *argv[]) {
       break;
 
     case 'o':
-      program_output = fopen(optarg, "w+");
-
-      if (program_output == NULL) {
-        errx(EXIT_FAILURE, "error: Error while opening file %s", optarg);
-      }
+      output_file_name = optarg;
 
       break;
 
@@ -282,6 +277,14 @@ int main(int argc, char *argv[]) {
       errx(EXIT_FAILURE, "error: invalid option '%s'\nCheck './sudoku -h' !",
            argv[optind - 1]);
     }
+  }
+
+  if (output_file_name != NULL) {
+    program_output = fopen(output_file_name, "w+");
+  }
+
+  if (program_output == NULL) {
+    errx(EXIT_FAILURE, "error: Error while opening file %s", optarg);
   }
 
   if (generate) {
