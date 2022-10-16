@@ -92,6 +92,10 @@ static void grid_alloc_msg_error() {
  */
 grid_t *grid_alloc(size_t size) {
 
+  if (!grid_check_size(size)) {
+    return NULL;
+  }
+
   grid_t *grid = malloc(sizeof(grid_t));
 
   if (grid == NULL) {
@@ -121,6 +125,10 @@ grid_t *grid_alloc(size_t size) {
  */
 void grid_free(grid_t *grid) {
 
+  if (grid == NULL) {
+    return;
+  }
+
   for (size_t i = 0; i < grid_get_size(grid); i++) {
     free(grid->cells[i]);
   }
@@ -140,7 +148,29 @@ bool grid_check_size(const size_t size) {
          (size == 25) || (size == 36) || (size == 49) || (size == 64);
 }
 
-size_t grid_get_size(const grid_t *grid) { return grid->size; }
+grid_t *grid_copy(const grid_t *grid) {
+
+  if (grid == NULL) {
+    return NULL;
+  }
+
+  grid_t *grid_copy;
+
+  grid_copy = grid_alloc(grid->size);
+
+  for (size_t i = 0; i < grid->size; i++) {
+    for (size_t j = 0; j < grid->size; j++) {
+      grid_copy->cells[i][j] = grid->cells[i][j];
+    }
+  }
+
+  return grid_copy;
+}
+
+size_t grid_get_size(const grid_t *grid) {
+
+  return grid == NULL ? 0 : grid->size;
+}
 
 static colors_t char2color(const char color, size_t grid_size) {
 
@@ -182,9 +212,19 @@ static char *colors2string(const colors_t colors, size_t grid_size) {
 
 void grid_set_cell(const grid_t *grid, const size_t row, const size_t column,
                    const char color) {
+
+  if ((grid == NULL) || (row >= grid->size) || (column >= grid->size)) {
+    return;
+  }
+
   grid->cells[row][column] = char2color(color, grid->size);
 }
 
 char *grid_get_cell(const grid_t *grid, const size_t row, const size_t column) {
+
+  if ((grid == NULL) || (row >= grid->size) || (column >= grid->size)) {
+    return NULL;
+  }
+
   return colors2string(grid->cells[row][column], grid->size);
 }

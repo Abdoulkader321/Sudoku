@@ -25,6 +25,8 @@ void grid_free();
 
 bool grid_check_size(const size_t size);
 
+grid_t *grid_copy(const grid_t *grid);
+
 size_t grid_get_size(const grid_t *grid);
 
 char *grid_get_cell(const grid_t *grid, const size_t row, const size_t column);

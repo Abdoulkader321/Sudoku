@@ -25,7 +25,7 @@ colors_t colors_add(const colors_t colors, const size_t color_id) {
 
 colors_t colors_discard(const colors_t colors, const size_t color_id) {
 
-  return colors == 0 ? 0 : (colors ^ colors_set(color_id));
+  return colors == 0 ? 0 : (colors & ~colors_set(color_id));
 }
 
 bool colors_is_in(const colors_t colors, const size_t color_id) {
