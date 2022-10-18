@@ -1,18 +1,19 @@
 CFLAGS = -std=c11 -Wall -Wextra -g -O2 -pedantic
 CPPFLAGS = -I../include -DDEBUG
+LDFLAGS=
 
 EXE = colors_tests grid_tests
 
 all: colors_tests grid_tests
 
 colors_tests: colors_tests.o colors.o
-	$(CC) $(CFLAGS) -o $@ $^;
+	$(CC) $(CFLAGS) -o $@ $^ $(LDFLAGS);
 
 colors_tests.o: colors_tests.c ../src/colors.c
 	$(CC) $(CFLAGS) $(CPPFLAGS) -c $< ;
 
 grid_tests: grid_tests.o grid.o colors.o
-	$(CC) $(CFLAGS) -o $@ $^;
+	$(CC) $(CFLAGS) -o $@ $^ $(LDFLAGS);
 
 grid_tests.o: grid_tests.c ../src/grid.c
 	$(CC) $(CFLAGS) $(CPPFLAGS) -c $< ;

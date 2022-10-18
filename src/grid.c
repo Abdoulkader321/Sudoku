@@ -1,4 +1,5 @@
 #include "grid.h"
+
 #include <colors.h>
 
 #include <err.h>
@@ -10,9 +11,6 @@ struct _grid_t {
   colors_t **cells;
 };
 
-/**
- * Writes the `grid` in the file descriptor `fd`.
- */
 void grid_print(const grid_t *grid, FILE *fd) {
   size_t grid_size = grid_get_size(grid);
 
@@ -33,9 +31,6 @@ void grid_print(const grid_t *grid, FILE *fd) {
   }
 }
 
-/**
- * Depending of the `grid` size, checks if char `c` satisfy conditions
- */
 bool grid_check_char(const grid_t *grid, const char c) {
 
   bool res = false;
@@ -87,9 +82,6 @@ static void grid_alloc_msg_error() {
   errx(EXIT_FAILURE, "error: Error while allocating grid structure");
 }
 
-/**
- * Allocate and return a pointer to an grid_t struct of size*size cells.
- */
 grid_t *grid_alloc(size_t size) {
 
   if (!grid_check_size(size)) {
@@ -97,21 +89,19 @@ grid_t *grid_alloc(size_t size) {
   }
 
   grid_t *grid = malloc(sizeof(grid_t));
-
   if (grid == NULL) {
     grid_alloc_msg_error();
   }
 
   grid->size = size;
   grid->cells = malloc(size * sizeof(colors_t *));
-
   if (grid->cells == NULL) {
     grid_alloc_msg_error();
   }
 
   for (size_t i = 0; i < size; i++) {
+    
     grid->cells[i] = malloc(size * sizeof(colors_t));
-
     if (grid->cells[i] == NULL) {
       grid_alloc_msg_error();
     }
@@ -137,11 +127,6 @@ void grid_free(grid_t *grid) {
   free(grid);
 }
 
-/**
- * Return
- *  + true: if `grid_size` is belongs to possible grids size.
- *  + false: else
- */
 bool grid_check_size(const size_t size) {
 
   return (size == 1) || (size == 4) || (size == 9) || (size == 16) ||
@@ -172,6 +157,7 @@ size_t grid_get_size(const grid_t *grid) {
   return grid == NULL ? 0 : grid->size;
 }
 
+/* Return the color associated to a given character*/
 static colors_t char2color(const char color, size_t grid_size) {
 
   if (color == EMPTY_CELL) {
@@ -189,6 +175,7 @@ static colors_t char2color(const char color, size_t grid_size) {
   return colors_set(i);
 }
 
+/* Return as a string all the colors contained in `colors` */
 static char *colors2string(const colors_t colors, size_t grid_size) {
 
   size_t nb_colors = colors_count(colors);

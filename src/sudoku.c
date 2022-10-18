@@ -1,4 +1,5 @@
 #include "sudoku.h"
+
 #include "grid.c"
 
 #include <stdbool.h>
@@ -11,12 +12,11 @@
 #include <string.h>
 
 #define MAX_GRID_SIZE 64
+#define GRID_DEFAULT_SIZE 9
 
 static bool verbose = false;
 
-/**
- * Return a grid that contains the first row of input grid
- */
+/* Return a grid strcuture that contains the first row of input grid */
 static grid_t *write_first_row_to_grid(char *first_row, int grid_size) {
 
   grid_t *grid;
@@ -28,7 +28,11 @@ static grid_t *write_first_row_to_grid(char *first_row, int grid_size) {
 
     return NULL;
   }
+
   grid = grid_alloc((size_t)grid_size);
+  if (grid == NULL) {
+    return NULL;
+  }
 
   for (int i = 0; i < grid_size; i++) {
 
@@ -46,7 +50,7 @@ static grid_t *write_first_row_to_grid(char *first_row, int grid_size) {
 
 /**
  * This parser returns:
- *  + a pointer to the grid if it's a valid grid.
+ *  + a pointer to the grid if it's a valid grid in the file `filename`.
  *  + null, otherwise.
  */
 static grid_t *file_parser(char *filename) {
@@ -127,21 +131,19 @@ static grid_t *file_parser(char *filename) {
         if (!first_row_readed) {
           first_row[grid_size] = c;
           grid_size++;
-
           break;
+
         } else {
 
           if (nb_row_grid > grid_size) {
             warnx("error: grid has %d line(s) more than expected.\n",
                   nb_row_grid - grid_size);
-
             return NULL;
           }
 
           if (nb_column_grid > grid_size) {
             warnx("error: grid has %d column(s) more than expected.\n",
                   nb_column_grid - grid_size);
-
             return NULL;
           }
 
@@ -150,7 +152,6 @@ static grid_t *file_parser(char *filename) {
           } else {
             warnx("error: wrong character '%c' at line %d column %d!\n", c,
                   nb_row_grid, nb_column_grid);
-
             return NULL;
           }
         }
@@ -214,7 +215,7 @@ int main(int argc, char *argv[]) {
   bool generate = false;
   bool solver = true;
 
-  int grid_size = 9;
+  int grid_size = GRID_DEFAULT_SIZE;
 
   FILE *program_output = stdout;
   char *output_file_name = NULL;

@@ -34,28 +34,32 @@ bool colors_is_in(const colors_t colors, const size_t color_id) {
 }
 
 colors_t colors_negate(const colors_t colors) {
+
   return colors_xor(colors, ULONG_MAX);
 }
 
 colors_t colors_and(const colors_t colors1, const colors_t colors2) {
+
   return colors1 & colors2;
 }
 
 colors_t colors_or(const colors_t colors1, const colors_t colors2) {
+
   return colors1 | colors2;
 }
 
 colors_t colors_xor(const colors_t colors1, const colors_t colors2) {
+
   return colors1 ^ colors2;
 }
 
 colors_t colors_is_equal(const colors_t colors1, const colors_t colors2) {
+
   return colors1 == colors2;
 }
 
 bool colors_is_singleton(const colors_t colors) {
 
-  /** Any power of 2 when subtracted by 1 is all 1 (Source: stackoverflow) */
   return colors == 0 ? false : (colors & (colors - 1)) == 0;
 }
 
