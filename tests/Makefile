@@ -1,6 +1,6 @@
 CFLAGS = -std=c11 -Wall -Wextra -g -O2 -pedantic
 CPPFLAGS = -I../include -DDEBUG
-LDFLAGS=
+LDFLAGS =
 
 EXE = colors_tests grid_tests
 
@@ -26,11 +26,8 @@ grid.o: ../src/grid.c ../include/grid.h ../include/colors.h
 	@cd ../src/ && $(MAKE)
 	@cp ../src/grid.o ./
 
-
-
-
 clean:
-	rm -f *.o $(EXE) 
+	rm -f *.o *.txt $(EXE) 
 
 help:
 	@echo "USAGE:"

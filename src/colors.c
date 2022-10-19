@@ -20,7 +20,7 @@ colors_t colors_set(const size_t color_id) {
 
 colors_t colors_add(const colors_t colors, const size_t color_id) {
 
-  return (colors | colors_set(color_id));
+  return colors | colors_set(color_id);
 }
 
 colors_t colors_discard(const colors_t colors, const size_t color_id) {
@@ -65,16 +65,21 @@ bool colors_is_singleton(const colors_t colors) {
 
 size_t colors_count(const colors_t colors) {
 
-  size_t count = 0;
+  colors_t colors_count = colors;
 
-  colors_t our_colors = colors;
+  /* In binary, 0x5555555555555555 looks like ..0101 */
+  colors_count = colors_count - ((colors_count >> 1) & 0x5555555555555555);
 
-  while (our_colors != 0) {
-    count += our_colors & 1; /**looking the first bit*/
-    our_colors >>= 1;
-  }
+  /* 0x3333333333333333 looks like ..0011 */
+  colors_count = (colors_count & 0x3333333333333333) +
+                 ((colors_count >> 2) & 0x3333333333333333);
 
-  return count;
+  /* 0x0F0F0F0F0F0F0F0F looks like ..00001111 */
+  /* 0x0101010101010101 looks like ..000000001 */
+  colors_count = (((colors_count + (colors_count >> 4)) & 0x0F0F0F0F0F0F0F0F) *
+                  0x0101010101010101) >> 56;
+
+  return colors_count;
 }
 
 bool colors_is_subset(const colors_t colors1, const colors_t colors2) {
@@ -98,16 +103,19 @@ colors_t colors_leftmost(const colors_t colors) {
     return colors_empty();
   }
 
-  int pos = -1;
+  size_t nb_colors = colors_count(colors);
+  size_t nb_colors_found = 0;
+  size_t pos = 0;
 
-  colors_t our_colors = colors;
+  while (nb_colors_found < nb_colors) {
 
-  while (our_colors != 0) {
-    our_colors >>= 1;
+    if (colors_is_in(colors, pos)) {
+      nb_colors_found++;
+    }
+
     pos++;
   }
-
-  return colors_set(pos);
+  return colors_set(pos - 1);
 }
 
 colors_t colors_random(const colors_t colors) {
@@ -121,16 +129,16 @@ colors_t colors_random(const colors_t colors) {
   srand(time(NULL));
   size_t random_color = (rand() % nb_colors) + 1;
 
-  int pos = -1;
+  size_t pos = 0;
 
   while (random_color != 0) {
-
-    pos++;
 
     if (colors_is_in(colors, pos)) {
       random_color--;
     }
+
+    pos++;
   }
 
-  return colors_set(pos);
+  return colors_set(pos - 1);
 }

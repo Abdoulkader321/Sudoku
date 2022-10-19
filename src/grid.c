@@ -71,8 +71,8 @@ bool grid_check_char(const grid_t *grid, const char c) {
     break;
 
   default:
-    errx(EXIT_FAILURE, "error: invalid grid size `%d`.\n",
-         (int)grid_get_size(grid));
+    errx(EXIT_FAILURE, "error: invalid grid size `%ld`.\n",
+         grid_get_size(grid));
   }
 
   return res;
@@ -100,7 +100,7 @@ grid_t *grid_alloc(size_t size) {
   }
 
   for (size_t i = 0; i < size; i++) {
-    
+
     grid->cells[i] = malloc(size * sizeof(colors_t));
     if (grid->cells[i] == NULL) {
       grid_alloc_msg_error();
