@@ -330,7 +330,8 @@ int main(int argc, char *argv[]) {
     are_all_grids_valid &= (grid != NULL);
 
     if (grid != NULL) {
-      grid_print(grid, program_output);
+      //grid_print(grid, program_output);
+      grid_is_consistent(grid);
       grid_free(grid);
     }
 
