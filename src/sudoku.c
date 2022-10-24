@@ -221,17 +221,14 @@ int main(int argc, char *argv[]) {
   char *output_file_name = NULL;
 
   const struct option long_opts[] = {
-      {"all", no_argument, 0, 'a'},     
-      {"generate", optional_argument, 0, 'g'},
-      {"unique", no_argument, 0, 'u'},  
-      {"output", required_argument, 0, 'o'},
-      {"verbose", no_argument, 0, 'v'}, 
-      {"version", no_argument, 0, 'V'},
-      {"help", no_argument, 0, 'h'},    
-      {NULL, no_argument, NULL, 0}};
+      {"all", no_argument, 0, 'a'},     {"generate", optional_argument, 0, 'g'},
+      {"unique", no_argument, 0, 'u'},  {"output", required_argument, 0, 'o'},
+      {"verbose", no_argument, 0, 'v'}, {"version", no_argument, 0, 'V'},
+      {"help", no_argument, 0, 'h'},    {NULL, no_argument, NULL, 0}};
 
   int optc;
-  while ((optc = getopt_long(argc, argv, "ag::uo:vVh", long_opts, NULL)) != -1) {
+  while ((optc = getopt_long(argc, argv, "ag::uo:vVh", long_opts, NULL)) !=
+         -1) {
 
     switch (optc) {
     case 'h':
@@ -318,7 +315,7 @@ int main(int argc, char *argv[]) {
 
   fprintf(program_output, "---Solveur mode---\n");
 
-  bool are_all_grids_valid = true;
+  bool are_all_grids_consistent = true;
 
   for (int i = optind; i < argc; i++) {
 
@@ -327,12 +324,15 @@ int main(int argc, char *argv[]) {
 
     grid_t *grid = file_parser(argv[i]);
 
-    are_all_grids_valid &= (grid != NULL);
+    are_all_grids_consistent &= (grid != NULL) && grid_is_consistent(grid);
 
-    if (grid != NULL) {
-      //grid_print(grid, program_output);
-      grid_is_consistent(grid);
+    if ((grid != NULL) && grid_is_consistent(grid)) {
+
+      fprintf(program_output, "The grid is consistent\n");
+
       grid_free(grid);
+    } else {
+      fprintf(program_output, "The gris is inconsistent or not valid\n");
     }
 
     fprintf(program_output, "-------------------\n");
@@ -340,5 +340,5 @@ int main(int argc, char *argv[]) {
 
   fclose(program_output);
 
-  return are_all_grids_valid ? EXIT_SUCCESS : EXIT_FAILURE;
+  return are_all_grids_consistent ? EXIT_SUCCESS : EXIT_FAILURE;
 }

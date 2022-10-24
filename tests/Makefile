@@ -1,6 +1,6 @@
 CFLAGS = -std=c11 -Wall -Wextra -g -O2 -pedantic
 CPPFLAGS = -I../include -DDEBUG
-LDFLAGS =
+LDFLAGS = -lm
 
 EXE = colors_tests grid_tests
 

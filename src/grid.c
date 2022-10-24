@@ -3,6 +3,7 @@
 #include <colors.h>
 
 #include <err.h>
+#include <math.h>
 #include <string.h>
 
 /* Internal structure (hiden from outside) to represent a sudoku grid */
@@ -214,4 +215,121 @@ char *grid_get_cell(const grid_t *grid, const size_t row, const size_t column) {
   }
 
   return colors2string(grid->cells[row][column], grid->size);
+}
+
+bool grid_is_solved(grid_t *grid) {
+
+  for (size_t i = 0; i < grid->size; i++) {
+
+    for (size_t j = 0; j < grid->size; j++) {
+
+      if (!colors_is_singleton(grid->cells[i][j])) {
+        return false;
+      }
+    }
+  }
+
+  return true;
+}
+
+/* Return True if subgrid is consistent, False otherwise
+* A subgrid is consistent if:
+ + there is no empty cell
+ + no two singletons with the same color
+ + each color must appear at least once
+*/
+static bool subgrid_consistency(colors_t subgrid[], const size_t size) {
+
+  colors_t subgrid_colors;
+
+  subgrid_colors = 0;
+  for (size_t i = 0; i < size; i++) {
+
+    colors_t color = subgrid[i];
+
+    if (color == 0) {
+      return false;
+    }
+
+    if (colors_is_singleton(color)) {
+
+      colors_t xor = colors_xor(subgrid_colors, color);
+
+      if (xor < subgrid_colors) {
+        return false;
+      }
+
+      subgrid_colors = xor;
+    }
+  }
+
+  subgrid_colors = 0;
+  for (size_t i = 0; i < size; i++) {
+    subgrid_colors = colors_or(subgrid_colors, subgrid[i]);
+  }
+
+  return (subgrid_colors == colors_full(size));
+}
+
+bool grid_is_consistent(grid_t *grid) {
+
+  colors_t subgrid[grid->size];
+  size_t index;
+
+  for (size_t row = 0; row < grid->size; row++) {
+
+    index = 0;
+
+    for (size_t column = 0; column < grid->size; column++) {
+
+      subgrid[index] = grid->cells[row][column];
+      index++;
+    }
+
+    if (!subgrid_consistency(subgrid, grid->size)) {
+      return false;
+    }
+  }
+
+  for (size_t column = 0; column < grid->size; column++) {
+
+    index = 0;
+
+    for (size_t row = 0; row < grid->size; row++) {
+
+      subgrid[index] = grid->cells[row][column];
+      index++;
+    }
+
+    if (!subgrid_consistency(subgrid, grid->size)) {
+      return false;
+    }
+  }
+
+  size_t grid_size_sqrt = sqrt(grid->size);
+
+  for (size_t block = 0; block < grid->size; block++) {
+
+    index = 0;
+
+    size_t row_start = ((block / grid_size_sqrt) * grid_size_sqrt);
+
+    for (size_t row = row_start; row < grid_size_sqrt + row_start; row++) {
+
+      size_t column_start = ((block % grid_size_sqrt) * grid_size_sqrt);
+
+      for (size_t column = column_start; column < grid_size_sqrt + column_start;
+           column++) {
+
+        subgrid[index] = grid->cells[row][column];
+        index++;
+      }
+    }
+
+    if (!subgrid_consistency(subgrid, grid->size)) {
+      return false;
+    }
+  }
+
+  return true;
 }
