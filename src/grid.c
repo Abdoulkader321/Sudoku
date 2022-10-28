@@ -333,3 +333,62 @@ bool grid_is_consistent(grid_t *grid) {
 
   return true;
 }
+
+size_t grid_heuristics(grid_t *grid){
+
+  colors_t* subgrid[grid->size];
+  size_t index;
+
+  for (size_t row = 0; row < grid->size; row++) {
+
+    index = 0;
+
+    for (size_t column = 0; column < grid->size; column++) {
+
+      subgrid[index] = &grid->cells[row][column];
+      index++;
+    }
+
+    subgrid_heuristics(subgrid, grid->size);
+  }
+
+  for (size_t column = 0; column < grid->size; column++) {
+
+    index = 0;
+
+    for (size_t row = 0; row < grid->size; row++) {
+
+      subgrid[index] = &grid->cells[row][column];
+      index++;
+    }
+
+    subgrid_heuristics(subgrid, grid->size);
+  }
+
+  size_t grid_size_sqrt = sqrt(grid->size);
+
+  for (size_t block = 0; block < grid->size; block++) {
+
+    index = 0;
+
+    size_t row_start = ((block / grid_size_sqrt) * grid_size_sqrt);
+
+    for (size_t row = row_start; row < grid_size_sqrt + row_start; row++) {
+
+      size_t column_start = ((block % grid_size_sqrt) * grid_size_sqrt);
+
+      for (size_t column = column_start; column < grid_size_sqrt + column_start;
+           column++) {
+
+        subgrid[index] = &grid->cells[row][column];
+        index++;
+      }
+    }
+
+    subgrid_heuristics(subgrid, grid->size);
+  }
+
+  return true;
+
+
+}

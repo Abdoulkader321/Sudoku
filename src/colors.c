@@ -77,7 +77,8 @@ size_t colors_count(const colors_t colors) {
   /* 0x0F0F0F0F0F0F0F0F looks like ..00001111 */
   /* 0x0101010101010101 looks like ..000000001 */
   colors_count = (((colors_count + (colors_count >> 4)) & 0x0F0F0F0F0F0F0F0F) *
-                  0x0101010101010101) >> 56;
+                  0x0101010101010101) >>
+                 56;
 
   return colors_count;
 }
@@ -141,4 +142,152 @@ colors_t colors_random(const colors_t colors) {
   }
 
   return colors_set(pos - 1);
+}
+
+/** Return
+ *  + True if 'cross-hatching' heuristic could be applied on subgrid
+ *  + False otherwise
+ */
+static bool cross_hatching(colors_t *subgrid[], size_t size) {
+
+  bool subgrid_changed = false;
+
+  for (size_t i = 0; i < size; i++) {
+
+    if (colors_is_singleton(*subgrid[i])) {
+
+      colors_t singleton_color = *subgrid[i];
+
+      for (size_t j = 0; j < size; j++) {
+
+        if (!colors_is_singleton(*subgrid[j])) {
+          colors_t xor = colors_xor(*subgrid[j], singleton_color);
+
+          if (!colors_is_equal(*subgrid[j], xor)) {
+            *subgrid[j] = xor;
+            subgrid_changed = true;
+          }
+        }
+      }
+    }
+  }
+
+  return subgrid_changed;
+}
+
+/** Return
+ *  + True if 'lone-number' heuristic could be applied on subgrid
+ *  + False otherwise
+ */
+static bool lone_number(colors_t *subgrid[], size_t size) {
+  bool subgrid_changed = false;
+
+  for (size_t i = 0; i < size; i++) {
+    /* Checking the occurences of each color of subgrid */
+
+    colors_t color = colors_set(i);
+    size_t color_occurence = 0;
+
+    size_t j;
+    for (j = 0; j < size; j++) {
+      colors_t cell_colors = *subgrid[j];
+
+      if (!colors_is_singleton(cell_colors)) {
+
+        if (colors_is_in(cell_colors, i)) {
+          color_occurence++;
+        }
+
+        if (color_occurence >= 2) {
+          break;
+        }
+      }
+    }
+
+    if (color_occurence == 1) {
+      *subgrid[j] = color;
+      subgrid_changed = true;
+    }
+  }
+
+  return subgrid_changed;
+}
+
+static bool naked_hidden_subset(colors_t *subgrid[], size_t size) {
+  bool subgrid_changed = false;
+
+  for (size_t N = 2; N <= 4; N++) {
+    /* Looking only for naked pair, triple, and quadruple */
+
+    for (size_t i = 0; i < size; i++) {
+
+      if (colors_count(*subgrid[i]) == N) {
+        size_t index_reference_cell = i; /* The index of the cell that contains
+                                    all N candidates*/
+
+        size_t nb_cells_with_N_candidates = 1;
+        size_t nb_cells_with_no_N_candidates = 0;
+
+        size_t index_cells_with_N_candidates[size];
+        size_t index_cells_with_no_N_candidates[size];
+
+        for (size_t j = 0; j < size; j++) {
+
+          if (j != index_reference_cell && !colors_is_singleton(*subgrid[j])) {
+
+            if (*subgrid[j] >= *subgrid[index_reference_cell] &&
+                colors_is_subset(*subgrid[index_reference_cell], *subgrid[j])) {
+
+              index_cells_with_N_candidates[nb_cells_with_N_candidates - 1] = j;
+              nb_cells_with_N_candidates++;
+            }
+
+            else if (colors_is_subset(*subgrid[j],
+                                      *subgrid[index_reference_cell])) {
+              index_cells_with_N_candidates[nb_cells_with_N_candidates - 1] = j;
+              nb_cells_with_N_candidates++;
+            } else {
+
+              index_cells_with_no_N_candidates[nb_cells_with_no_N_candidates] =
+                  j;
+              nb_cells_with_no_N_candidates++;
+            }
+          }
+        }
+
+        if (nb_cells_with_N_candidates == N) {
+          /* A naked of N candidates has been found */
+
+          subgrid_changed = true;
+
+          for (size_t i = 0; i < nb_cells_with_N_candidates; i++) {
+            *subgrid[index_cells_with_N_candidates[i]] =
+                colors_and(*subgrid[index_cells_with_N_candidates[i]],
+                           *subgrid[index_reference_cell]);
+          }
+
+          for (size_t i = 0; i < nb_cells_with_no_N_candidates; i++) {
+            *subgrid[index_cells_with_no_N_candidates[i]] =
+                colors_xor(*subgrid[index_cells_with_no_N_candidates[i]],
+                           *subgrid[index_reference_cell]);
+          }
+
+          return subgrid_changed;
+        }
+      }
+    }
+  }
+
+  return subgrid_changed;
+}
+
+bool subgrid_heuristics(colors_t *subgrid[], size_t size) {
+
+  bool subgrid_changed = false;
+
+  subgrid_changed |= cross_hatching(subgrid, size);
+  subgrid_changed |= lone_number(subgrid, size);
+  // subgrid_changed |= naked_hidden_subset(subgrid, size);
+
+  return subgrid_changed;
 }
