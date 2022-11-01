@@ -45,10 +45,9 @@ char *grid_get_cell(const grid_t *grid, const size_t row, const size_t column);
 void grid_set_cell(const grid_t *grid, const size_t row, const size_t column,
                    const char color);
 
-/* Return True if the grid is solved(has only singletons), False otherwise */
-bool grid_is_solved(grid_t *grid);
-
 /* Return True if grid is consistent, False otherwise */
 bool grid_is_consistent(grid_t *grid);
+
+size_t grid_heuristics(grid_t *grid);
 
 #endif /* GRID_H */

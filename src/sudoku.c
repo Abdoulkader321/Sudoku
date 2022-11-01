@@ -324,15 +324,31 @@ int main(int argc, char *argv[]) {
 
     grid_t *grid = file_parser(argv[i]);
 
-    are_all_grids_consistent &= (grid != NULL) && grid_is_consistent(grid);
-
     if ((grid != NULL) && grid_is_consistent(grid)) {
 
-      fprintf(program_output, "The grid is consistent\n");
+      switch (grid_heuristics(grid)) {
+
+      case 0:
+        fprintf(program_output, "The grid is not solved but consistent\n");
+        break;
+
+      case 1:
+        grid_print(grid, program_output);
+        fprintf(program_output, "The grid is solved and consistent\n");
+        break;
+
+      case 2:
+        fprintf(program_output, "The grid is inconsistent\n");
+        break;
+      }
+
+      are_all_grids_consistent &= true;
 
       grid_free(grid);
     } else {
-      fprintf(program_output, "The gris is inconsistent or not valid\n");
+
+      fprintf(program_output, "Initial grid is inconsistent or not valid\n");
+      are_all_grids_consistent &= false;
     }
 
     fprintf(program_output, "-------------------\n");

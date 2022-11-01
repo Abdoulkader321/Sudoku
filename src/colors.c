@@ -28,6 +28,12 @@ colors_t colors_discard(const colors_t colors, const size_t color_id) {
   return colors == 0 ? 0 : (colors & ~colors_set(color_id));
 }
 
+colors_t colors_discard_B_from_A(const colors_t colorsA,
+                                 const colors_t colorsB) {
+
+  return colorsA + colorsB == 0 ? 0 : (colorsA & ~colorsB);
+}
+
 bool colors_is_in(const colors_t colors, const size_t color_id) {
 
   return (colors & colors_set(color_id)) != 0;
@@ -161,10 +167,12 @@ static bool cross_hatching(colors_t *subgrid[], size_t size) {
       for (size_t j = 0; j < size; j++) {
 
         if (!colors_is_singleton(*subgrid[j])) {
-          colors_t xor = colors_xor(*subgrid[j], singleton_color);
 
-          if (!colors_is_equal(*subgrid[j], xor)) {
-            *subgrid[j] = xor;
+          colors_t discard =
+              colors_discard_B_from_A(*subgrid[j], singleton_color);
+
+          if (!colors_is_equal(*subgrid[j], discard)) {
+            *subgrid[j] = discard;
             subgrid_changed = true;
           }
         }
@@ -180,6 +188,7 @@ static bool cross_hatching(colors_t *subgrid[], size_t size) {
  *  + False otherwise
  */
 static bool lone_number(colors_t *subgrid[], size_t size) {
+
   bool subgrid_changed = false;
 
   for (size_t i = 0; i < size; i++) {
@@ -187,25 +196,24 @@ static bool lone_number(colors_t *subgrid[], size_t size) {
 
     colors_t color = colors_set(i);
     size_t color_occurence = 0;
+    int color_index = 0;
 
     size_t j;
     for (j = 0; j < size; j++) {
       colors_t cell_colors = *subgrid[j];
 
-      if (!colors_is_singleton(cell_colors)) {
+      if (colors_is_in(cell_colors, i)) {
+        color_occurence++;
+        color_index = j;
+      }
 
-        if (colors_is_in(cell_colors, i)) {
-          color_occurence++;
-        }
-
-        if (color_occurence >= 2) {
-          break;
-        }
+      if (color_occurence >= 2) {
+        break;
       }
     }
 
-    if (color_occurence == 1) {
-      *subgrid[j] = color;
+    if (color_occurence == 1 && !colors_is_singleton(*subgrid[color_index])) {
+      *subgrid[color_index] = color;
       subgrid_changed = true;
     }
   }
@@ -214,18 +222,16 @@ static bool lone_number(colors_t *subgrid[], size_t size) {
 }
 
 static bool naked_hidden_subset(colors_t *subgrid[], size_t size) {
+
   bool subgrid_changed = false;
 
-  for (size_t N = 2; N <= 4; N++) {
-    /* Looking only for naked pair, triple, and quadruple */
+  for (size_t N = 2; N < size / 2; N++) {
 
     for (size_t i = 0; i < size; i++) {
 
-      if (colors_count(*subgrid[i]) == N) {
-        size_t index_reference_cell = i; /* The index of the cell that contains
-                                    all N candidates*/
+      if (colors_count(subgrid[i]) == N) {
 
-        size_t nb_cells_with_N_candidates = 1;
+        size_t nb_cells_with_N_candidates = 0;
         size_t nb_cells_with_no_N_candidates = 0;
 
         size_t index_cells_with_N_candidates[size];
@@ -233,46 +239,42 @@ static bool naked_hidden_subset(colors_t *subgrid[], size_t size) {
 
         for (size_t j = 0; j < size; j++) {
 
-          if (j != index_reference_cell && !colors_is_singleton(*subgrid[j])) {
+          if (!colors_is_singleton(*subgrid[j]) &&
+              colors_is_subset(*subgrid[j], *subgrid[i])) {
 
-            if (*subgrid[j] >= *subgrid[index_reference_cell] &&
-                colors_is_subset(*subgrid[index_reference_cell], *subgrid[j])) {
-
-              index_cells_with_N_candidates[nb_cells_with_N_candidates - 1] = j;
-              nb_cells_with_N_candidates++;
-            }
-
-            else if (colors_is_subset(*subgrid[j],
-                                      *subgrid[index_reference_cell])) {
-              index_cells_with_N_candidates[nb_cells_with_N_candidates - 1] = j;
-              nb_cells_with_N_candidates++;
-            } else {
-
-              index_cells_with_no_N_candidates[nb_cells_with_no_N_candidates] =
-                  j;
-              nb_cells_with_no_N_candidates++;
-            }
+            index_cells_with_N_candidates[nb_cells_with_N_candidates] = j;
+            nb_cells_with_N_candidates++;
+          } else {
+            index_cells_with_no_N_candidates[nb_cells_with_no_N_candidates] = j;
+            nb_cells_with_no_N_candidates++;
           }
         }
 
         if (nb_cells_with_N_candidates == N) {
-          /* A naked of N candidates has been found */
+          // naked N found
 
-          subgrid_changed = true;
+          for (size_t i = 0; i < nb_cells_with_N_candidates - 1; i++) {
 
-          for (size_t i = 0; i < nb_cells_with_N_candidates; i++) {
-            *subgrid[index_cells_with_N_candidates[i]] =
-                colors_and(*subgrid[index_cells_with_N_candidates[i]],
-                           *subgrid[index_reference_cell]);
+            colors_t colors_i_j_and = colors_and(
+                *subgrid[index_cells_with_N_candidates[i]], *subgrid[i]);
+            if (*subgrid[index_cells_with_N_candidates[i]] != colors_i_j_and) {
+              *subgrid[index_cells_with_N_candidates[i]] = colors_i_j_and;
+              subgrid_changed = true;
+            }
           }
 
           for (size_t i = 0; i < nb_cells_with_no_N_candidates; i++) {
-            *subgrid[index_cells_with_no_N_candidates[i]] =
-                colors_xor(*subgrid[index_cells_with_no_N_candidates[i]],
-                           *subgrid[index_reference_cell]);
-          }
 
-          return subgrid_changed;
+            colors_t colors_i_j_discard = colors_discard_B_from_A(
+                *subgrid[index_cells_with_no_N_candidates[i]], *subgrid[i]);
+
+            if (*subgrid[index_cells_with_no_N_candidates[i]] !=
+                colors_i_j_discard) {
+              *subgrid[index_cells_with_no_N_candidates[i]] =
+                  colors_i_j_discard;
+              subgrid_changed = true;
+            }
+          }
         }
       }
     }
@@ -287,7 +289,7 @@ bool subgrid_heuristics(colors_t *subgrid[], size_t size) {
 
   subgrid_changed |= cross_hatching(subgrid, size);
   subgrid_changed |= lone_number(subgrid, size);
-  // subgrid_changed |= naked_hidden_subset(subgrid, size);
+  subgrid_changed |= naked_hidden_subset(subgrid, size);
 
   return subgrid_changed;
 }

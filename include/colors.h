@@ -25,6 +25,9 @@ colors_t colors_add(const colors_t colors, const size_t color_id);
 /* Set the given color index to '0' in colors and return it */
 colors_t colors_discard(const colors_t colors, const size_t color_id);
 
+colors_t colors_discard_B_from_A(const colors_t colorsA,
+                                 const colors_t colorsB);
+
 /* Chech if the color index is set to '1' or not */
 bool colors_is_in(const colors_t colors, const size_t color_id);
 
@@ -63,5 +66,8 @@ colors_t colors_leftmost(const colors_t colors);
 
 /* Returns a random color chosen from the color set */
 colors_t colors_random(const colors_t colors);
+
+/* Returns True if heuristics has been applied on grid, False otherwise */
+bool subgrid_heuristics(colors_t *subgrid[], size_t size);
 
 #endif /* COLORS_H */
