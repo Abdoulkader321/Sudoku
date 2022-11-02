@@ -2,6 +2,7 @@
 
 #include <stdio.h>
 
+#include <math.h>
 #include <time.h>
 
 #define ULONG_MAX 0xffffffffffffffff
@@ -31,7 +32,7 @@ colors_t colors_discard(const colors_t colors, const size_t color_id) {
 colors_t colors_discard_B_from_A(const colors_t colorsA,
                                  const colors_t colorsB) {
 
-  return colorsA + colorsB == 0 ? 0 : (colorsA & ~colorsB);
+  return colorsA + colorsB == 0 ? 0 : (colorsA & colors_negate(colorsB));
 }
 
 bool colors_is_in(const colors_t colors, const size_t color_id) {
@@ -168,10 +169,12 @@ static bool cross_hatching(colors_t *subgrid[], size_t size) {
 
         if (!colors_is_singleton(*subgrid[j])) {
 
-          colors_t discard =
-              colors_discard_B_from_A(*subgrid[j], singleton_color);
+          colors_t cell_colors = *subgrid[j];
 
-          if (!colors_is_equal(*subgrid[j], discard)) {
+          colors_t discard =
+              colors_discard_B_from_A(cell_colors, singleton_color);
+
+          if (!colors_is_equal(cell_colors, discard)) {
             *subgrid[j] = discard;
             subgrid_changed = true;
           }
@@ -198,8 +201,7 @@ static bool lone_number(colors_t *subgrid[], size_t size) {
     size_t color_occurence = 0;
     int color_index = 0;
 
-    size_t j;
-    for (j = 0; j < size; j++) {
+    for (size_t j = 0; j < size; j++) {
       colors_t cell_colors = *subgrid[j];
 
       if (colors_is_in(cell_colors, i)) {
@@ -225,11 +227,11 @@ static bool naked_hidden_subset(colors_t *subgrid[], size_t size) {
 
   bool subgrid_changed = false;
 
-  for (size_t N = 2; N < size / 2; N++) {
+  for (size_t N = 2; N < ceil(size / 2); N++) {
 
     for (size_t i = 0; i < size; i++) {
 
-      if (colors_count(subgrid[i]) == N) {
+      if (colors_count(*subgrid[i]) == N) {
 
         size_t nb_cells_with_N_candidates = 0;
         size_t nb_cells_with_no_N_candidates = 0;
@@ -253,25 +255,35 @@ static bool naked_hidden_subset(colors_t *subgrid[], size_t size) {
         if (nb_cells_with_N_candidates == N) {
           // naked N found
 
-          for (size_t i = 0; i < nb_cells_with_N_candidates - 1; i++) {
+          /* Naked subset */
+          for (size_t k = 0; k < nb_cells_with_no_N_candidates; k++) {
 
-            colors_t colors_i_j_and = colors_and(
-                *subgrid[index_cells_with_N_candidates[i]], *subgrid[i]);
-            if (*subgrid[index_cells_with_N_candidates[i]] != colors_i_j_and) {
-              *subgrid[index_cells_with_N_candidates[i]] = colors_i_j_and;
+            colors_t other_cell_colors =
+                *subgrid[index_cells_with_no_N_candidates[k]];
+
+            colors_t new_other_cell_colors =
+                colors_discard_B_from_A(other_cell_colors, *subgrid[i]);
+
+            if (new_other_cell_colors != other_cell_colors) {
+
+              *subgrid[index_cells_with_no_N_candidates[k]] =
+                  new_other_cell_colors;
               subgrid_changed = true;
             }
           }
 
-          for (size_t i = 0; i < nb_cells_with_no_N_candidates; i++) {
+          /* Hidden subset */
+          for (size_t k = 0; k < nb_cells_with_N_candidates; k++) {
 
-            colors_t colors_i_j_discard = colors_discard_B_from_A(
-                *subgrid[index_cells_with_no_N_candidates[i]], *subgrid[i]);
+            colors_t candidates_cell_colors =
+                *subgrid[index_cells_with_N_candidates[k]];
 
-            if (*subgrid[index_cells_with_no_N_candidates[i]] !=
-                colors_i_j_discard) {
-              *subgrid[index_cells_with_no_N_candidates[i]] =
-                  colors_i_j_discard;
+            colors_t candidates_cell_new_colors =
+                colors_and(candidates_cell_colors, *subgrid[i]);
+
+            if (candidates_cell_colors != candidates_cell_new_colors) {
+
+              candidates_cell_colors = candidates_cell_new_colors;
               subgrid_changed = true;
             }
           }
@@ -288,7 +300,9 @@ bool subgrid_heuristics(colors_t *subgrid[], size_t size) {
   bool subgrid_changed = false;
 
   subgrid_changed |= cross_hatching(subgrid, size);
+
   subgrid_changed |= lone_number(subgrid, size);
+
   subgrid_changed |= naked_hidden_subset(subgrid, size);
 
   return subgrid_changed;

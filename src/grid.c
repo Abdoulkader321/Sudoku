@@ -225,9 +225,8 @@ char *grid_get_cell(const grid_t *grid, const size_t row, const size_t column) {
 */
 static bool subgrid_consistency(colors_t *subgrid[], const size_t size) {
 
-  colors_t subgrid_colors;
+  colors_t subgrid_colors = 0;
 
-  subgrid_colors = 0;
   for (size_t i = 0; i < size; i++) {
 
     colors_t color = *subgrid[i];
@@ -253,7 +252,7 @@ static bool subgrid_consistency(colors_t *subgrid[], const size_t size) {
     subgrid_colors = colors_or(subgrid_colors, *subgrid[i]);
   }
 
-  return (subgrid_colors == colors_full(size));
+  return subgrid_colors == colors_full(size);
 }
 
 bool grid_is_consistent(grid_t *grid) {
@@ -359,7 +358,6 @@ size_t grid_heuristics(grid_t *grid) {
       if (!subgrid_consistency(subgrid, grid->size)) {
         return 2;
       }
-
     }
 
     for (size_t column = 0; column < grid->size; column++) {
@@ -376,7 +374,6 @@ size_t grid_heuristics(grid_t *grid) {
       if (!subgrid_consistency(subgrid, grid->size)) {
         return 2;
       }
-
     }
 
     size_t grid_size_sqrt = sqrt(grid->size);
@@ -403,9 +400,8 @@ size_t grid_heuristics(grid_t *grid) {
       if (!subgrid_consistency(subgrid, grid->size)) {
         return 2;
       }
-
     }
   }
 
-  return grid_is_solved(grid)? 1 : 0;
+  return grid_is_solved(grid) ? 1 : 0;
 }

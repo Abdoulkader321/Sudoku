@@ -338,6 +338,7 @@ int main(int argc, char *argv[]) {
         break;
 
       case 2:
+        //grid_print(grid, program_output);
         fprintf(program_output, "The grid is inconsistent\n");
         break;
       }
