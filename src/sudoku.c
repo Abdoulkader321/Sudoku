@@ -326,6 +326,8 @@ int main(int argc, char *argv[]) {
 
     if ((grid != NULL) && grid_is_consistent(grid)) {
 
+      are_all_grids_consistent &= true;
+
       switch (grid_heuristics(grid)) {
 
       case 0:
@@ -338,12 +340,10 @@ int main(int argc, char *argv[]) {
         break;
 
       case 2:
-        //grid_print(grid, program_output);
         fprintf(program_output, "The grid is inconsistent\n");
+        are_all_grids_consistent &= false;
         break;
       }
-
-      are_all_grids_consistent &= true;
 
       grid_free(grid);
     } else {
