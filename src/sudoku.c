@@ -331,16 +331,16 @@ int main(int argc, char *argv[]) {
       switch (grid_heuristics(grid)) {
 
       case 0:
-        fprintf(program_output, "The grid is not solved but consistent\n");
+        fprintf(program_output, "The grid is not solved but consistent!\n");
         break;
 
       case 1:
         grid_print(grid, program_output);
-        fprintf(program_output, "The grid is solved and consistent\n");
+        fprintf(program_output, "The grid is solved!\n");
         break;
 
       case 2:
-        fprintf(program_output, "The grid is inconsistent\n");
+        fprintf(program_output, "The grid is inconsistent!\n");
         are_all_grids_consistent &= false;
         break;
       }
