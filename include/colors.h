@@ -9,26 +9,26 @@
 
 typedef uint64_t colors_t;
 
-/* Initialize and return colors with size bits all set to '1' and all others to
- * '0' */
+/* Initialize and return colors with size bits set */
 colors_t colors_full(const size_t size);
 
 /* Returns zero */
 colors_t colors_empty(void);
 
-/* Set to '1' the color encoded at the index `color_id`, all others are zeros */
+/* Set the color encoded at the index `color_id`, all others are zeros */
 colors_t colors_set(const size_t color_id);
 
-/* Set the given color index to '1' in colors and return it */
+/* Set the given color index in colors and return it */
 colors_t colors_add(const colors_t colors, const size_t color_id);
 
-/* Set the given color index to '0' in colors and return it */
+/* Unset the given color index in colors and return it */
 colors_t colors_discard(const colors_t colors, const size_t color_id);
 
+/* Discards all colors of B from the colors of A*/
 colors_t colors_discard_B_from_A(const colors_t colorsA,
                                  const colors_t colorsB);
 
-/* Chech if the color index is set to '1' or not */
+/* Chech if the color index is set or not */
 bool colors_is_in(const colors_t colors, const size_t color_id);
 
 /* Bitwise negate the colors_t and return it */

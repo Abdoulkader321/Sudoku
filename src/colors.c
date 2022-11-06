@@ -94,7 +94,7 @@ size_t colors_count(const colors_t colors) {
 
 bool colors_is_subset(const colors_t colors1, const colors_t colors2) {
 
-  return colors1 == 0 ? 0 : (colors2 | colors1) == colors2;
+  return colors1 == 0 ? true : (colors2 | colors1) == colors2;
 }
 
 colors_t colors_subtract(const colors_t colors1, const colors_t colors2) {

@@ -48,6 +48,12 @@ void grid_set_cell(const grid_t *grid, const size_t row, const size_t column,
 /* Return True if grid is consistent, False otherwise */
 bool grid_is_consistent(grid_t *grid);
 
+/**
+ * Apply heuristics on grid and return:
+ * + 0: if the grid is not solved but still consistent
+ * + 1: if the grid is solved
+ * + 2: if the grid is inconsistent
+ * */
 size_t grid_heuristics(grid_t *grid);
 
 #endif /* GRID_H */

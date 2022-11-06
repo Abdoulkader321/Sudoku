@@ -459,13 +459,13 @@ main (void)
   EXPECT ((!colors_is_subset (colors_add (p0, 63), colors_set (63))),
 	  "colors_is_subset([1, 2, 3, 5, 7, 27, 60, 63], [63]) == false");
 
-  EXPECT ((!colors_is_subset (colors_empty (), p0)),
-	  "colors_is_subset([], [1,2,3,5,7,27,60]) == false");
+  EXPECT ((colors_is_subset (colors_empty (), p0)),
+	  "colors_is_subset([], [1,2,3,5,7,27,60]) == true");
   EXPECT ((!colors_is_subset (p0, colors_empty ())),
 	  "colors_is_subset([1,2,3,5,7,27,60], []) == false");
 
-  EXPECT ((!colors_is_subset (colors_empty (), colors_empty ())),
-	  "colors_is_subset([], []) == false");
+  EXPECT ((colors_is_subset (colors_empty (), colors_empty ())),
+	  "colors_is_subset([], []) == true");
 
   fputs ("\n", stdout);
 

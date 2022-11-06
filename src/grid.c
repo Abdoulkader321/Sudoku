@@ -2,7 +2,6 @@
 
 #include <colors.h>
 
-#include <err.h>
 #include <math.h>
 #include <string.h>
 
@@ -19,6 +18,9 @@ void grid_print(const grid_t *grid, FILE *fd) {
     for (size_t j = 0; j < grid_size; j++) {
 
       char *colors = grid_get_cell(grid, i, j);
+      if (colors == NULL) {
+        return;
+      }
 
       if (strlen(colors) == grid_size) {
         fprintf(fd, "%c ", (grid_size == 1) ? color_table[0] : EMPTY_CELL);
@@ -70,17 +72,9 @@ bool grid_check_char(const grid_t *grid, const char c) {
     res |= (c == '1') || (c == '_');
     // FALL THROUGH
     break;
-
-  default:
-    errx(EXIT_FAILURE, "error: invalid grid size `%ld`.\n",
-         grid_get_size(grid));
   }
 
   return res;
-}
-
-static void grid_alloc_msg_error() {
-  errx(EXIT_FAILURE, "error: Error while allocating grid structure");
 }
 
 grid_t *grid_alloc(size_t size) {
@@ -91,29 +85,26 @@ grid_t *grid_alloc(size_t size) {
 
   grid_t *grid = malloc(sizeof(grid_t));
   if (grid == NULL) {
-    grid_alloc_msg_error();
+    return NULL;
   }
 
   grid->size = size;
   grid->cells = malloc(size * sizeof(colors_t *));
   if (grid->cells == NULL) {
-    grid_alloc_msg_error();
+    return NULL;
   }
 
   for (size_t i = 0; i < size; i++) {
 
     grid->cells[i] = malloc(size * sizeof(colors_t));
     if (grid->cells[i] == NULL) {
-      grid_alloc_msg_error();
+      return NULL;
     }
   }
 
   return grid;
 }
 
-/**
- * Free the memory of the struct `grid`
- */
 void grid_free(grid_t *grid) {
 
   if (grid == NULL) {
@@ -143,6 +134,8 @@ grid_t *grid_copy(const grid_t *grid) {
   grid_t *grid_copy;
 
   grid_copy = grid_alloc(grid->size);
+  if (grid_copy == NULL)
+    return NULL;
 
   for (size_t i = 0; i < grid->size; i++) {
     for (size_t j = 0; j < grid->size; j++) {
@@ -183,7 +176,7 @@ static char *colors2string(const colors_t colors, size_t grid_size) {
 
   char *colors_string = malloc(sizeof(char) * (nb_colors + 1));
   if (colors_string == NULL) {
-    errx(EXIT_FAILURE, "error: Error while allocating string for colors");
+    return NULL;
   }
 
   size_t index_colors = 0;
@@ -217,12 +210,7 @@ char *grid_get_cell(const grid_t *grid, const size_t row, const size_t column) {
   return colors2string(grid->cells[row][column], grid->size);
 }
 
-/* Return True if subgrid is consistent, False otherwise
-* A subgrid is consistent if:
- + there is no empty cell
- + no two singletons with the same color
- + each color must appear at least once
-*/
+/* Return True if the subgrid is consistent, False otherwise */
 static bool subgrid_consistency(colors_t *subgrid[], const size_t size) {
 
   colors_t subgrid_colors = 0;
@@ -337,6 +325,10 @@ size_t grid_heuristics(grid_t *grid) {
 
   bool is_fixpoint_not_reached = true;
 
+  static const size_t status_code_grid_is_solved = 1;
+  static const size_t status_code_grid_is_not_solved_and_consistent = 0;
+  static const size_t status_code_grid_is_inconsistent = 2;
+
   while (is_fixpoint_not_reached) {
 
     is_fixpoint_not_reached = false;
@@ -356,7 +348,7 @@ size_t grid_heuristics(grid_t *grid) {
 
       is_fixpoint_not_reached |= subgrid_heuristics(subgrid, grid->size);
       if (!subgrid_consistency(subgrid, grid->size)) {
-        return 2;
+        return status_code_grid_is_inconsistent;
       }
     }
 
@@ -372,7 +364,7 @@ size_t grid_heuristics(grid_t *grid) {
 
       is_fixpoint_not_reached |= subgrid_heuristics(subgrid, grid->size);
       if (!subgrid_consistency(subgrid, grid->size)) {
-        return 2;
+        return status_code_grid_is_inconsistent;
       }
     }
 
@@ -398,10 +390,11 @@ size_t grid_heuristics(grid_t *grid) {
 
       is_fixpoint_not_reached |= subgrid_heuristics(subgrid, grid->size);
       if (!subgrid_consistency(subgrid, grid->size)) {
-        return 2;
+        return status_code_grid_is_inconsistent;
       }
     }
   }
 
-  return grid_is_solved(grid) ? 1 : 0;
+  return grid_is_solved(grid) ? status_code_grid_is_solved
+                              : status_code_grid_is_not_solved_and_consistent;
 }

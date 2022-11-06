@@ -11,7 +11,6 @@
 #include <getopt.h>
 #include <string.h>
 
-#define MAX_GRID_SIZE 64
 #define GRID_DEFAULT_SIZE 9
 
 static bool verbose = false;
@@ -31,7 +30,7 @@ static grid_t *write_first_row_to_grid(char *first_row, int grid_size) {
 
   grid = grid_alloc((size_t)grid_size);
   if (grid == NULL) {
-    return NULL;
+    errx(EXIT_FAILURE, "error: Error while allocating grid structure");
   }
 
   for (int i = 0; i < grid_size; i++) {
@@ -56,12 +55,11 @@ static grid_t *write_first_row_to_grid(char *first_row, int grid_size) {
 static grid_t *file_parser(char *filename) {
 
   FILE *file = fopen(filename, "r");
-
   if (file == NULL) {
     errx(EXIT_FAILURE, "error: Error while opening file %s", filename);
   }
 
-  char c;
+  int c;
   grid_t *grid = NULL;
   char first_row[MAX_GRID_SIZE];
 
@@ -82,7 +80,6 @@ static grid_t *file_parser(char *filename) {
       break;
 
     case ' ':
-      break;
 
     case '\t':
       break;
