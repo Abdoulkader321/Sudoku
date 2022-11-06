@@ -32,7 +32,9 @@ colors_t colors_discard(const colors_t colors, const size_t color_id) {
 colors_t colors_discard_B_from_A(const colors_t colorsA,
                                  const colors_t colorsB) {
 
-  return colorsA + colorsB == 0 ? 0 : (colorsA & colors_negate(colorsB));
+  return ((colorsA == 0) || (colorsB == 0))
+             ? 0
+             : (colorsA & colors_negate(colorsB));
 }
 
 bool colors_is_in(const colors_t colors, const size_t color_id) {
@@ -175,6 +177,7 @@ static bool cross_hatching(colors_t *subgrid[], size_t size) {
               colors_discard_B_from_A(cell_colors, singleton_color);
 
           if (!colors_is_equal(cell_colors, discard)) {
+
             *subgrid[j] = discard;
             subgrid_changed = true;
           }
