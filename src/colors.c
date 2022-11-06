@@ -7,6 +7,8 @@
 
 #define ULONG_MAX 0xffffffffffffffff
 
+static bool seed_intialized = false;
+
 colors_t colors_full(const size_t size) {
 
   return (size >= MAX_COLORS) ? ULONG_MAX : (1UL << size) - 1;
@@ -136,17 +138,18 @@ colors_t colors_random(const colors_t colors) {
 
   size_t nb_colors = colors_count(colors);
 
-  srand(time(NULL));
+  if (!seed_intialized) {
+    srand(time(NULL));
+    seed_intialized = true;
+  }
+
   size_t random_color = (rand() % nb_colors) + 1;
 
   size_t pos = 0;
-
   while (random_color != 0) {
-
     if (colors_is_in(colors, pos)) {
       random_color--;
     }
-
     pos++;
   }
 
