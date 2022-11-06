@@ -17,6 +17,8 @@ static const char color_table[] = "123456789"
 /* Sudoku grid (forward declaration to hide the implementation)*/
 typedef struct _grid_t grid_t;
 
+typedef struct choice_t choice_t;
+
 /* Allocate and return a pointer to an grid_t struct of size*size cells */
 grid_t *grid_alloc(size_t size);
 
@@ -55,5 +57,26 @@ bool grid_is_consistent(grid_t *grid);
  * + 2: if the grid is inconsistent
  * */
 size_t grid_heuristics(grid_t *grid);
+
+/* Free a choice_t data structure */
+void grid_choice_free(choice_t *choice);
+
+/* Check if the color set of the choice is empty or not */
+bool grid_choice_is_empty(const choice_t *choice);
+
+/* Apply the choice to the given grid */
+void grid_choice_apply(grid_t *grid, const choice_t *choice);
+
+/* Blank (set to full colors) the given choice */
+void grid_choice_blank(grid_t *grid, const choice_t *choice);
+
+/* Discard the choice from the grid */
+void grid_choice_discard(grid_t *grid, const choice_t *choice);
+
+/* Display the choice on the file descriptor */
+void grid_choice_print(const choice_t *choice, FILE *fd);
+
+/* Return a choice of the smallest set of colors, NULL otherwise */
+choice_t *grid_choice(grid_t *grid);
 
 #endif /* GRID_H */
