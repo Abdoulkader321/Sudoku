@@ -11,12 +11,6 @@ struct _grid_t {
   colors_t **cells;
 };
 
-struct choice_t {
-  size_t row;
-  size_t column;
-  colors_t color;
-};
-
 void grid_print(const grid_t *grid, FILE *fd) {
   size_t grid_size = grid_get_size(grid);
 
@@ -403,63 +397,4 @@ size_t grid_heuristics(grid_t *grid) {
 
   return grid_is_solved(grid) ? status_code_grid_is_solved
                               : status_code_grid_is_not_solved_and_consistent;
-}
-
-void grid_choice_free(choice_t *choice) { free(choice); }
-
-bool grid_choice_is_empty(const choice_t *choice) { return choice->color == 0; }
-
-void grid_choice_apply(grid_t *grid, const choice_t *choice) {
-
-  grid_set_cell(grid, choice->row, choice->column, choice->color);
-}
-
-void grid_choice_discard(grid_t *grid, const choice_t *choice) {
-
-  colors_t new_colors =
-      colors_discard_B_from_A(grid->cells[choice->row][choice->column],
-                              choice->color); /* The choice is discarded */
-
-  grid_set_cell(grid, choice->row, choice->column, new_colors);
-}
-
-void grid_choice_print(const choice_t *choice, FILE *fd) {
-
-  for (size_t i = 0; i < MAX_GRID_SIZE; i++) {
-
-    if (colors_is_in(choice->color, i)) {
-      fprintf(fd, "Grid[%ld][%ld]'s choice is '%c'.\n", choice->row,
-              choice->column, color_table[i]);
-      return;
-    }
-  }
-}
-
-choice_t *grid_choice(grid_t *grid) {
-
-  for (size_t N = 2; N < ceil(grid->size); N++) {
-
-    for (size_t row = 0; row < grid->size; row++) {
-
-      for (size_t column = 0; column < grid->size; column++) {
-
-        if (colors_count(grid->cells[row][column]) == N) {
-
-          choice_t *choice = malloc(sizeof(choice_t));
-
-          if (choice == NULL) {
-            return NULL;
-          }
-
-          choice->row = row;
-          choice->column = column;
-          choice->color = grid->cells[row][column];
-
-          return choice;
-        }
-      }
-    }
-  }
-
-  return NULL;
 }

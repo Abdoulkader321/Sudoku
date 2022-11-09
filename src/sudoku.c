@@ -191,8 +191,6 @@ static grid_t *file_parser(char *filename) {
   return grid;
 }
 
-static grid_t *grid_solver(grid_t *grid, const mode_t mode) { return NULL; }
-
 int main(int argc, char *argv[]) {
 
   const char *help_msg =
