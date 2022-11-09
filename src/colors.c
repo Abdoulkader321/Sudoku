@@ -229,7 +229,7 @@ static bool lone_number(colors_t *subgrid[], size_t size) {
   return subgrid_changed;
 }
 
-static bool naked_hidden_subset(colors_t *subgrid[], size_t size) {
+static bool naked_subset(colors_t *subgrid[], size_t size) {
 
   bool subgrid_changed = false;
 
@@ -239,26 +239,19 @@ static bool naked_hidden_subset(colors_t *subgrid[], size_t size) {
 
       if (colors_count(*subgrid[i]) == N) {
 
-        size_t nb_cells_with_N_candidates = 0;
         size_t nb_cells_with_no_N_candidates = 0;
-
-        size_t index_cells_with_N_candidates[size];
         size_t index_cells_with_no_N_candidates[size];
 
         for (size_t j = 0; j < size; j++) {
 
-          if (!colors_is_singleton(*subgrid[j]) &&
-              colors_is_subset(*subgrid[j], *subgrid[i])) {
-
-            index_cells_with_N_candidates[nb_cells_with_N_candidates] = j;
-            nb_cells_with_N_candidates++;
-          } else {
+          if (colors_is_singleton(*subgrid[j]) ||
+              !colors_is_subset(*subgrid[j], *subgrid[i])) {
             index_cells_with_no_N_candidates[nb_cells_with_no_N_candidates] = j;
             nb_cells_with_no_N_candidates++;
           }
         }
 
-        if (nb_cells_with_N_candidates == N) {
+        if (size - nb_cells_with_no_N_candidates == N) {
           // naked N found
 
           /* Naked subset */
@@ -274,22 +267,6 @@ static bool naked_hidden_subset(colors_t *subgrid[], size_t size) {
 
               *subgrid[index_cells_with_no_N_candidates[k]] =
                   new_other_cell_colors;
-              subgrid_changed = true;
-            }
-          }
-
-          /* Hidden subset */
-          for (size_t k = 0; k < nb_cells_with_N_candidates; k++) {
-
-            colors_t candidates_cell_colors =
-                *subgrid[index_cells_with_N_candidates[k]];
-
-            colors_t candidates_cell_new_colors =
-                colors_and(candidates_cell_colors, *subgrid[i]);
-
-            if (candidates_cell_colors != candidates_cell_new_colors) {
-
-              candidates_cell_colors = candidates_cell_new_colors;
               subgrid_changed = true;
             }
           }
@@ -309,7 +286,7 @@ bool subgrid_heuristics(colors_t *subgrid[], size_t size) {
 
   subgrid_changed |= lone_number(subgrid, size);
 
-  subgrid_changed |= naked_hidden_subset(subgrid, size);
+  subgrid_changed |= naked_subset(subgrid, size);
 
   return subgrid_changed;
 }
