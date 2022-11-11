@@ -191,7 +191,50 @@ static grid_t *file_parser(char *filename) {
   return grid;
 }
 
-static grid_t *grid_solver(grid_t *grid, const mode_t mode) { return NULL; }
+/**
+ * Return:
+ *  + True if the grid has been solved
+ *  + False, otherwise.
+ */
+static bool grid_solver(grid_t *grid, const mode_t mode, FILE *fd) {
+
+  size_t res = grid_heuristics(grid);
+
+  if (res == 2) {
+    return false;
+  }
+
+  if (res == 1) {
+    grid_print(grid, fd);
+    fprintf(fd, "The grid is solved!\n");
+
+    return true;
+  }
+
+  grid_t *grid_cpy = grid_copy(grid);
+  choice_t *choice = grid_choice(grid_cpy);
+
+  grid_choice_apply(grid_cpy, choice);
+
+  if(!grid_solver(grid_cpy, mode, fd)){
+    free(grid_cpy);
+    
+    grid_choice_discard(grid, choice);
+    grid_cpy = grid_copy(grid);
+    
+    free(choice);
+  }else{
+    printf("coucou\n");
+  }
+  
+
+  //fprintf(fd, "The grid is solved!\n");
+  //grid_free(grid);
+  //grid_free(grid_cpy);
+  //grid_print(grid, fd);
+  //printf("Hello WOrld\n");
+  return true;
+}
 
 int main(int argc, char *argv[]) {
 
@@ -325,26 +368,15 @@ int main(int argc, char *argv[]) {
 
     if ((grid != NULL) && grid_is_consistent(grid)) {
 
-      are_all_grids_consistent &= true;
+      int is_grid_solved =
+          grid_solver(grid, all ? mode_all : mode_first, program_output);
 
-      switch (grid_heuristics(grid)) {
+      are_all_grids_consistent &= is_grid_solved;
 
-      case 0:
-        fprintf(program_output, "The grid is not solved but consistent!\n");
-        break;
-
-      case 1:
-        grid_print(grid, program_output);
-        fprintf(program_output, "The grid is solved!\n");
-        break;
-
-      case 2:
+      if (!is_grid_solved) {
         fprintf(program_output, "The grid is inconsistent!\n");
-        are_all_grids_consistent &= false;
-        break;
       }
 
-      grid_free(grid);
     } else {
 
       fprintf(program_output, "Initial grid is inconsistent or not valid\n");

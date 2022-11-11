@@ -20,18 +20,36 @@ struct choice_t {
 void grid_print(const grid_t *grid, FILE *fd) {
   size_t grid_size = grid_get_size(grid);
 
+  size_t max_cells_colors = 0;
+
+  for (size_t i = 0; i < grid_size; i++) {
+    for (size_t j = 0; j < grid_size; j++) {
+      size_t nb_colors = colors_count(grid->cells[i][j]);
+      if (nb_colors > max_cells_colors) {
+        max_cells_colors = nb_colors;
+      }
+    }
+  }
+
   for (size_t i = 0; i < grid_size; i++) {
     for (size_t j = 0; j < grid_size; j++) {
 
-      char *colors = grid_get_cell(grid, i, j);
+      const char *colors = grid_get_cell(grid, i, j);
+      size_t nb_colors = strlen(colors);
+
       if (colors == NULL) {
         return;
       }
 
       if (strlen(colors) == grid_size) {
-        fprintf(fd, "%c ", (grid_size == 1) ? color_table[0] : EMPTY_CELL);
+        fprintf(fd, "%c", (grid_size == 1) ? color_table[0] : EMPTY_CELL);
+
       } else {
-        fprintf(fd, "%s ", colors);
+        fprintf(fd, "%s", colors);
+      }
+
+      for (size_t k = nb_colors; k <= max_cells_colors; k++) {
+        fprintf(fd, " ");
       }
 
       free(colors);
@@ -411,7 +429,7 @@ bool grid_choice_is_empty(const choice_t *choice) { return choice->color == 0; }
 
 void grid_choice_apply(grid_t *grid, const choice_t *choice) {
 
-  grid_set_cell(grid, choice->row, choice->column, choice->color);
+  grid->cells[choice->row][choice->column] = choice->color;
 }
 
 void grid_choice_discard(grid_t *grid, const choice_t *choice) {
@@ -420,7 +438,19 @@ void grid_choice_discard(grid_t *grid, const choice_t *choice) {
       colors_discard_B_from_A(grid->cells[choice->row][choice->column],
                               choice->color); /* The choice is discarded */
 
-  grid_set_cell(grid, choice->row, choice->column, new_colors);
+  if (new_colors == 0) {
+    printf("********debut********\n");
+    grid_choice_print(choice, stdout);
+    grid_print(grid, stdout);
+  }
+
+  grid->cells[choice->row][choice->column] = new_colors;
+
+  if (grid->cells[choice->row][choice->column] == 0) {
+    printf("**************\n");
+    grid_print(grid, stdout);
+    printf("********FIN********\n");
+  }
 }
 
 void grid_choice_print(const choice_t *choice, FILE *fd) {
@@ -436,6 +466,10 @@ void grid_choice_print(const choice_t *choice, FILE *fd) {
 }
 
 choice_t *grid_choice(grid_t *grid) {
+
+  printf("********Choice******\n");
+  grid_print(grid, stdout);
+  printf("****\n");
 
   for (size_t N = 2; N < ceil(grid->size); N++) {
 
@@ -453,13 +487,16 @@ choice_t *grid_choice(grid_t *grid) {
 
           choice->row = row;
           choice->column = column;
-          choice->color = grid->cells[row][column];
+          choice->color = colors_rightmost(grid->cells[row][column]);
+
+          printf("[%ld][%ld]\n", row, column);
+          printf("********ENDCHOICE******\n");
 
           return choice;
         }
       }
     }
   }
-
+  printf("Pas de choix\n********ENDCHOICE******\n");
   return NULL;
 }
