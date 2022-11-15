@@ -191,92 +191,60 @@ static grid_t *file_parser(char *filename) {
   return grid;
 }
 
-/**
-static size_t apply_heuristics(grid_t *grid, FILE *fd) {
+static size_t count_solved_grid = 0;
+static size_t grid_solver2(grid_t *grid, const mode_t mode, FILE *fd) {
 
-  size_t res = grid_heuristics(grid);
+  switch (grid_heuristics(grid)) {
+  case 2:
+    return 2;
 
-  if (res == 1) {
+  case 1:
+    count_solved_grid++;
+    fprintf(fd, "Solution %lu\n", count_solved_grid);
     grid_print(grid, fd);
-    fprintf(fd, "The grid is solved!\n");
-  }
 
-  return res;
+    return 1;
+  case 0:
+
+    grid_t *grid_cpy = grid_copy(grid);
+
+    choice_t *choice;
+    while ((choice = grid_choice(grid_cpy)) != NULL) {
+
+      grid_choice_apply(grid_cpy, choice);
+
+      switch (grid_solver2(grid_cpy, mode, fd)) {
+
+      case 1:
+        if (mode == mode_first) {
+
+          free(choice);
+          grid_free(grid_cpy);
+
+          return 1;
+        }
+        // FALL THROUGH
+      case 2:
+        grid_choice_discard(grid, choice);
+        grid_free(grid_cpy);
+        grid_cpy = grid_copy(grid);
+      }
+
+      free(choice);
+
+    }
+
+    grid_free(grid_cpy);
+
+    return 2;
+  }
 }
-*/
+
 /**
  * Return:
  *  + True if the grid has been solved
  *  + False, otherwise.
  */
-/**
-static bool grid_solver3(grid_t *grid, const mode_t mode, FILE *fd) {
-
-  size_t res = apply_heuristics(grid, fd);
-
-  if (res != 0) {
-    return true;
-  }
-
-  grid_t *grid_cpy = grid_copy(grid);
-
-  choice_t *choice;
-  while ((choice = grid_choice(grid_cpy)) != NULL) {
-
-    grid_choice_apply(grid_cpy, choice);
-
-    grid_solver(grid_cpy, mode, fd);
-
-    grid_cpy = grid_copy(grid);
-
-    grid_choice_discard(grid_cpy, choice);
-    size_t res = grid_heuristics(grid_cpy);
-
-    if (res == 1) {
-      grid_print(grid_cpy, fd);
-      fprintf(fd, "The grid is solved!\n");
-
-      return true;
-    }
-
-    if (res == 2) {
-      return;
-    }
-    grid = grid_copy(grid_cpy);
-  }
-
-  return true;
-}*/
-/*
-static bool grid_solver2(grid_t *grid, const mode_t mode, FILE *fd) {
-
-  size_t res = apply_heuristics(grid, fd);
-
-  if (res != 0) {
-    return true;
-  }
-
-  grid_t *grid_cpy = grid_copy(grid);
-
-  choice_t *choice;
-  while ((choice = grid_choice(grid_cpy)) != NULL) {
-
-    grid_choice_apply(grid_cpy, choice);
-
-    grid_solver(grid_cpy, mode, fd);
-
-    grid_cpy = grid_copy(grid);
-
-    grid_choice_discard(grid_cpy, choice);
-
-    grid = grid_copy(grid_cpy);
-  }
-
-  return true;
-}*/
-
-static size_t count_solved_grid = 0;
-
 static size_t grid_solver(grid_t *grid, const mode_t mode, FILE *fd) {
 
   size_t res = grid_heuristics(grid);
@@ -319,6 +287,7 @@ static size_t grid_solver(grid_t *grid, const mode_t mode, FILE *fd) {
     return grid_solver(grid, mode, fd);
 
   default:
+    printf("ICI?");
     return res;
   }
 }
@@ -459,7 +428,6 @@ int main(int argc, char *argv[]) {
 
       grid_solver(grid, all ? mode_all : mode_first, program_output);
       grid_free(grid);
-      
 
       if (count_solved_grid != 0) {
         fprintf(program_output, "The grid is solved!\n");
