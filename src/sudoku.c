@@ -231,7 +231,6 @@ static size_t grid_solver2(grid_t *grid, const mode_t mode, FILE *fd) {
       }
 
       free(choice);
-
     }
 
     grid_free(grid_cpy);
@@ -250,14 +249,19 @@ static size_t grid_solver(grid_t *grid, const mode_t mode, FILE *fd) {
   size_t res = grid_heuristics(grid);
 
   switch (res) {
-  case 2:
-    return res;
 
   case 1:
     count_solved_grid++;
-    fprintf(fd, "Solution %lu\n", count_solved_grid);
-    grid_print(grid, fd);
 
+    if (mode == mode_all) {
+      fprintf(fd, "Solution %lu\n", count_solved_grid);
+    } else {
+      fprintf(fd, "Solution\n");
+    }
+    grid_print(grid, fd);
+    // FALL THROUGH
+
+  case 2:
     return res;
 
   case 0:
@@ -442,6 +446,7 @@ int main(int argc, char *argv[]) {
 
       fprintf(program_output, "Initial grid is inconsistent or not valid\n");
       are_all_grids_consistent &= false;
+      grid_free(grid);
     }
 
     fprintf(program_output, "-------------------\n");
