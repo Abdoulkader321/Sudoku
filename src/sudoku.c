@@ -192,52 +192,6 @@ static grid_t *file_parser(char *filename) {
 }
 
 static size_t count_solved_grid = 0;
-static size_t grid_solver2(grid_t *grid, const mode_t mode, FILE *fd) {
-
-  switch (grid_heuristics(grid)) {
-  case 2:
-    return 2;
-
-  case 1:
-    count_solved_grid++;
-    fprintf(fd, "Solution %lu\n", count_solved_grid);
-    grid_print(grid, fd);
-
-    return 1;
-  case 0:
-
-    grid_t *grid_cpy = grid_copy(grid);
-
-    choice_t *choice;
-    while ((choice = grid_choice(grid_cpy)) != NULL) {
-
-      grid_choice_apply(grid_cpy, choice);
-
-      switch (grid_solver2(grid_cpy, mode, fd)) {
-
-      case 1:
-        if (mode == mode_first) {
-
-          free(choice);
-          grid_free(grid_cpy);
-
-          return 1;
-        }
-        // FALL THROUGH
-      case 2:
-        grid_choice_discard(grid, choice);
-        grid_free(grid_cpy);
-        grid_cpy = grid_copy(grid);
-      }
-
-      free(choice);
-    }
-
-    grid_free(grid_cpy);
-
-    return 2;
-  }
-}
 
 /**
  * Return:
@@ -245,6 +199,9 @@ static size_t grid_solver2(grid_t *grid, const mode_t mode, FILE *fd) {
  *  + False, otherwise.
  */
 static size_t grid_solver(grid_t *grid, const mode_t mode, FILE *fd) {
+
+  grid_t *grid_cpy; 
+  choice_t *choice;
 
   size_t res = grid_heuristics(grid);
 
@@ -266,8 +223,8 @@ static size_t grid_solver(grid_t *grid, const mode_t mode, FILE *fd) {
 
   case 0:
 
-    grid_t *grid_cpy = grid_copy(grid);
-    choice_t *choice = grid_choice(grid_cpy);
+    grid_cpy = grid_copy(grid);
+    choice = grid_choice(grid_cpy);
 
     if (choice == NULL) {
       // This case will normally never happen
