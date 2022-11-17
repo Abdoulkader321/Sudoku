@@ -14,6 +14,7 @@
 #define GRID_DEFAULT_SIZE 9
 
 static bool verbose = false;
+static size_t count_solved_grid = 0;
 
 /* Return a grid structure that contains the first row of input grid */
 static grid_t *write_first_row_to_grid(char *first_row, int grid_size) {
@@ -191,16 +192,15 @@ static grid_t *file_parser(char *filename) {
   return grid;
 }
 
-static size_t count_solved_grid = 0;
-
 /**
  * Return:
- *  + True if the grid has been solved
- *  + False, otherwise.
+ * + 0: if the grid is not solved but still consistent
+ * + 1: if the grid is solved and display it
+ * + 2: if the grid is inconsistent
  */
 static size_t grid_solver(grid_t *grid, const mode_t mode, FILE *fd) {
 
-  grid_t *grid_cpy; 
+  grid_t *grid_cpy;
   choice_t *choice;
 
   size_t res = grid_heuristics(grid);
@@ -224,31 +224,31 @@ static size_t grid_solver(grid_t *grid, const mode_t mode, FILE *fd) {
   case 0:
 
     grid_cpy = grid_copy(grid);
-    choice = grid_choice(grid_cpy);
+    if (grid_cpy == NULL) {
+      errx(EXIT_FAILURE, "error: Error while doing a deep code of grid\n");
+    }
 
+    choice = grid_choice(grid_cpy);
     if (choice == NULL) {
       // This case will normally never happen
       errx(EXIT_FAILURE, "Any choice is possible\n");
     }
 
     grid_choice_apply(grid_cpy, choice);
-
     size_t backtracking_res = grid_solver(grid_cpy, mode, fd);
-
     grid_free(grid_cpy);
 
     if (backtracking_res == 1 && mode == mode_first) {
-      free(choice);
+      grid_choice_free(choice);
       return 1;
     }
 
     grid_choice_discard(grid, choice);
-    free(choice);
+    grid_choice_free(choice);
 
     return grid_solver(grid, mode, fd);
 
   default:
-    printf("ICI?");
     return res;
   }
 }
@@ -386,7 +386,6 @@ int main(int argc, char *argv[]) {
     if ((grid != NULL) && grid_is_consistent(grid)) {
 
       count_solved_grid = 0;
-
       grid_solver(grid, all ? mode_all : mode_first, program_output);
       grid_free(grid);
 
@@ -395,13 +394,13 @@ int main(int argc, char *argv[]) {
         are_all_grids_consistent &= true;
 
       } else {
-        fprintf(program_output, "The grid is inconsistent!\n");
+        warnx("The grid is inconsistent!\n");
         are_all_grids_consistent &= false;
       }
 
     } else {
 
-      fprintf(program_output, "Initial grid is inconsistent or not valid\n");
+      warnx("Initial grid is inconsistent or not valid\n");
       are_all_grids_consistent &= false;
       grid_free(grid);
     }

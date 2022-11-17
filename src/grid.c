@@ -455,8 +455,7 @@ void grid_choice_print(const choice_t *choice, FILE *fd) {
 
 choice_t *grid_choice(grid_t *grid) {
 
-
-  for (size_t N = 2; N < ceil(grid->size); N++) {
+  for (size_t N = 2; N < grid->size; N++) {
 
     for (size_t row = 0; row < grid->size; row++) {
 
@@ -465,7 +464,6 @@ choice_t *grid_choice(grid_t *grid) {
         if (colors_count(grid->cells[row][column]) == N) {
 
           choice_t *choice = malloc(sizeof(choice_t));
-
           if (choice == NULL) {
             return NULL;
           }

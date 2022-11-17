@@ -282,41 +282,40 @@ static bool hidden_subset(colors_t *subgrid[], size_t size) {
 
   bool subgrid_changed = false;
 
-    for (size_t i = 0; i < size; i++) {
+  for (size_t i = 0; i < size; i++) {
 
-      if (!colors_is_singleton(*subgrid[i])) {
+    if (!colors_is_singleton(*subgrid[i])) {
 
-        colors_t reference_colors = *subgrid[i];
+      colors_t reference_colors = *subgrid[i];
 
-        size_t tab_index[size]; /** Contains the index of candidates */
-        size_t nb_element_tab = 0;
+      size_t tab_index[size]; /** Contains the index of candidates */
+      size_t nb_element_tab = 0;
 
-        for (size_t j = 0; j < size; j++) {
+      for (size_t j = 0; j < size; j++) {
 
-          if (colors_and(reference_colors, *subgrid[j]) > 0) {
-            tab_index[nb_element_tab] = j;
-            nb_element_tab++;
-          }
+        if (colors_and(reference_colors, *subgrid[j]) > 0) {
+          tab_index[nb_element_tab] = j;
+          nb_element_tab++;
         }
+      }
 
-        if (nb_element_tab == colors_count(reference_colors)) {
+      if (nb_element_tab == colors_count(reference_colors)) {
 
-          for (size_t k = 0; k < nb_element_tab; k++) {
+        for (size_t k = 0; k < nb_element_tab; k++) {
 
-            colors_t candidates_cell_colors = *subgrid[tab_index[k]];
+          colors_t candidates_cell_colors = *subgrid[tab_index[k]];
 
-            colors_t candidates_cell_new_colors =
-                colors_and(reference_colors, candidates_cell_colors);
+          colors_t candidates_cell_new_colors =
+              colors_and(reference_colors, candidates_cell_colors);
 
-            if (candidates_cell_colors != candidates_cell_new_colors) {
-              *subgrid[tab_index[k]] = candidates_cell_new_colors;
-              subgrid_changed = true;
-            }
+          if (candidates_cell_colors != candidates_cell_new_colors) {
+            *subgrid[tab_index[k]] = candidates_cell_new_colors;
+            subgrid_changed = true;
           }
         }
       }
     }
-  
+  }
 
   return subgrid_changed;
 }
