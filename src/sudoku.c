@@ -280,10 +280,14 @@ int main(int argc, char *argv[]) {
   char *output_file_name = NULL;
 
   const struct option long_opts[] = {
-      {"all", no_argument, 0, 'a'},     {"generate", optional_argument, 0, 'g'},
-      {"unique", no_argument, 0, 'u'},  {"output", required_argument, 0, 'o'},
-      {"verbose", no_argument, 0, 'v'}, {"version", no_argument, 0, 'V'},
-      {"help", no_argument, 0, 'h'},    {NULL, no_argument, NULL, 0}};
+      {"all", no_argument, 0, 'a'},     
+      {"generate", optional_argument, 0, 'g'},
+      {"unique", no_argument, 0, 'u'},  
+      {"output", required_argument, 0, 'o'},
+      {"verbose", no_argument, 0, 'v'}, 
+      {"version", no_argument, 0, 'V'},
+      {"help", no_argument, 0, 'h'},    
+      {NULL, no_argument, NULL, 0}};
 
   int optc;
   while ((optc = getopt_long(argc, argv, "ag::uo:vVh", long_opts, NULL)) !=
