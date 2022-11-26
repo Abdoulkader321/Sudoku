@@ -2,6 +2,7 @@
 
 #include <stdio.h>
 
+#include "grid.h"
 #include <math.h>
 #include <time.h>
 
@@ -156,6 +157,35 @@ colors_t colors_random(const colors_t colors) {
   return colors_set(pos - 1);
 }
 
+static char *colors2string(const colors_t colors, size_t grid_size) {
+
+  size_t nb_colors = colors_count(colors);
+
+  char *colors_string = malloc(sizeof(char) * (nb_colors + 1));
+  if (colors_string == NULL) {
+    return NULL;
+  }
+
+  size_t index_colors = 0;
+  for (size_t i = 0; i < grid_size; i++) {
+    if (colors_is_in(colors, i)) {
+      colors_string[index_colors] = color_table[i];
+      index_colors++;
+    }
+  }
+  colors_string[nb_colors] = '\0';
+
+  return colors_string;
+}
+
+static void display_subgrid(colors_t *subgrid[], size_t size) {
+
+  for (size_t i = 0; i < size; i++) {
+    printf("%s ", colors2string(*subgrid[i], size));
+  }
+  printf("\n");
+}
+
 /** Return
  *  + True if 'cross-hatching' heuristic could be applied on subgrid
  *  + False otherwise
@@ -163,27 +193,29 @@ colors_t colors_random(const colors_t colors) {
 static bool cross_hatching(colors_t *subgrid[], size_t size) {
 
   bool subgrid_changed = false;
+  bool is_finished = false;
 
-  for (size_t i = 0; i < size; i++) {
+  while (!is_finished) {
+    is_finished = true;
+    colors_t singleton_colors = 0;
 
-    if (colors_is_singleton(*subgrid[i])) {
+    for (size_t i = 0; i < size; i++) {
 
-      colors_t singleton_color = *subgrid[i];
+      if (colors_is_singleton(*subgrid[i])) {
+        singleton_colors = colors_or(singleton_colors, *subgrid[i]);
+      }
+    }
 
-      for (size_t j = 0; j < size; j++) {
+    for (size_t i = 0; i < size; i++) {
 
-        if (!colors_is_singleton(*subgrid[j])) {
+      if (!colors_is_singleton(*subgrid[i]) &&
+          colors_and(singleton_colors, *subgrid[i]) > 0) {
+        subgrid_changed = true;
 
-          colors_t cell_colors = *subgrid[j];
+        *subgrid[i] = colors_discard_B_from_A(*subgrid[i], singleton_colors);
 
-          colors_t discard =
-              colors_discard_B_from_A(cell_colors, singleton_color);
-
-          if (!colors_is_equal(cell_colors, discard)) {
-
-            *subgrid[j] = discard;
-            subgrid_changed = true;
-          }
+        if (colors_is_singleton(*subgrid[i])) {
+          is_finished = false;
         }
       }
     }
@@ -199,30 +231,31 @@ static bool cross_hatching(colors_t *subgrid[], size_t size) {
 static bool lone_number(colors_t *subgrid[], size_t size) {
 
   bool subgrid_changed = false;
+  colors_t unique_colors = colors_empty();
+  colors_t common_colors = colors_empty();
 
   for (size_t i = 0; i < size; i++) {
-    /* Checking the occurences of each color of subgrid */
 
-    colors_t color = colors_set(i);
-    size_t color_occurence = 0;
-    int color_index = 0;
+    if (!colors_is_singleton(*subgrid[i])) {
 
-    for (size_t j = 0; j < size; j++) {
-      colors_t cell_colors = *subgrid[j];
-
-      if (colors_is_in(cell_colors, i)) {
-        color_occurence++;
-        color_index = j;
-      }
-
-      if (color_occurence >= 2) {
-        break;
-      }
+      colors_t intersection = colors_and(unique_colors, *subgrid[i]);
+      unique_colors = colors_or(unique_colors, *subgrid[i]);
+      common_colors = colors_or(common_colors, intersection);
     }
+  }
 
-    if (color_occurence == 1 && !colors_is_singleton(*subgrid[color_index])) {
-      *subgrid[color_index] = color;
-      subgrid_changed = true;
+  unique_colors = colors_subtract(unique_colors, common_colors);
+
+  if (unique_colors != 0) {
+
+    for (size_t i = 0; i < size; i++) {
+
+      if (!colors_is_singleton(*subgrid[i]) &&
+          colors_and(*subgrid[i], unique_colors) != 0) {
+
+        *subgrid[i] = colors_leftmost(colors_and(*subgrid[i], unique_colors));
+        subgrid_changed = true;
+      }
     }
   }
 
