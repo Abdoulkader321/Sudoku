@@ -64,8 +64,10 @@ colors_t colors_rightmost(const colors_t colors);
 /* Returns the rightmost color of the set (most significant bit) */
 colors_t colors_leftmost(const colors_t colors);
 
+size_t color_index(colors_t colors);
+
 /* Returns a random color chosen from the color set */
-colors_t colors_random(const colors_t colors);
+colors_t colors_random(colors_t colors);
 
 /* Returns True if heuristics has been applied on grid, False otherwise */
 bool subgrid_heuristics(colors_t *subgrid[], size_t size);

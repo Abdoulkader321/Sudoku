@@ -4,6 +4,9 @@
 
 #include <math.h>
 #include <string.h>
+#include <time.h>
+
+static bool seed_intialized = false;
 
 /* Internal structure (hiden from outside) to represent a sudoku grid */
 struct _grid_t {
@@ -234,6 +237,38 @@ char *grid_get_cell(const grid_t *grid, const size_t row, const size_t column) {
   return colors2string(grid->cells[row][column], grid->size);
 }
 
+static size_t get_sqrt(const size_t size) {
+
+  switch (size) {
+  case 64:
+    return 8;
+
+  case 49:
+    return 7;
+
+  case 36:
+    return 6;
+
+  case 25:
+    return 5;
+
+  case 16:
+    return 4;
+
+  case 9:
+    return 3;
+
+  case 4:
+    return 2;
+
+  case 1:
+    return 1;
+
+  default:
+    return 0;
+  }
+}
+
 /* Return True if the subgrid is consistent, False otherwise */
 static bool subgrid_consistency(colors_t *subgrid[], const size_t size) {
 
@@ -302,7 +337,7 @@ bool grid_is_consistent(grid_t *grid) {
     }
   }
 
-  size_t grid_size_sqrt = sqrt(grid->size);
+  size_t grid_size_sqrt = get_sqrt(grid->size);
 
   for (size_t block = 0; block < grid->size; block++) {
 
@@ -392,7 +427,7 @@ size_t grid_heuristics(grid_t *grid) {
       }
     }
 
-    size_t grid_size_sqrt = sqrt(grid->size);
+    size_t grid_size_sqrt = get_sqrt(grid->size);
 
     for (size_t block = 0; block < grid->size; block++) {
 
@@ -455,7 +490,7 @@ void grid_choice_print(const choice_t *choice, FILE *fd) {
 
 choice_t *grid_choice(grid_t *grid) {
 
-  for (size_t N = 2; N < grid->size; N++) {
+  for (size_t N = 2; N <= grid->size; N++) {
 
     for (size_t row = 0; row < grid->size; row++) {
 
@@ -478,4 +513,46 @@ choice_t *grid_choice(grid_t *grid) {
     }
   }
   return NULL;
+}
+
+grid_t *get_new_grid(const size_t size) {
+
+  grid_t *grid = grid_alloc(size);
+  colors_t all_colors = colors_full(size);
+
+  if (!seed_intialized) {
+    srand(time(NULL));
+    seed_intialized = true;
+  }
+
+  for (size_t i = 0; i < size; i++) {
+    for (size_t j = 0; j < size; j++) {
+
+      grid->cells[i][j] = all_colors;
+    }
+  }
+
+  size_t index_i = rand() % size;
+  size_t index_j = (index_i * 2) % size;
+  colors_t random = colors_set(index_i);
+  grid->cells[index_i][index_j] = random;
+
+  return grid;
+}
+
+void remove_some_colors(grid_t* grid, const size_t size, const nb_colors_to_remove){
+
+  size_t nb_colors_to_remove_per_line = ceil((size*size) / nb_colors_to_remove);
+  colors_t full_colors = colors_full(size);
+
+  for(size_t i = 0; i < size; i++){
+
+    for(size_t j = 0; j < nb_colors_to_remove_per_line; j++){
+
+      size_t index = rand() % size; 
+      grid->cells[i][index] = full_colors;
+    }
+
+  }
+
 }

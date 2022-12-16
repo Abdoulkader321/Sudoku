@@ -209,6 +209,7 @@ static size_t grid_solver(grid_t *grid, const mode_t mode, FILE *fd) {
 
   case 1:
     count_solved_grid++;
+    fflush(fd);
 
     if (mode == mode_all) {
       fprintf(fd, "Solution %lu\n", count_solved_grid);
@@ -253,6 +254,23 @@ static size_t grid_solver(grid_t *grid, const mode_t mode, FILE *fd) {
   }
 }
 
+static grid_t *grid_generator(const bool is_unique_mode, const size_t size,
+                              FILE *fd) {
+
+  grid_t *grid = get_new_grid(size);
+  grid = grid_solver(grid, mode_first, fd);
+  grid_print(grid, fd);
+  printf("HEY");
+
+  if (!is_unique_mode) {
+    size_t nb_colors_to_remove = ceil(size * size * 0.4);
+    remove_some_colors(grid, size, nb_colors_to_remove);
+    // grid_print(grid, fd);
+  }
+
+  return grid;
+}
+
 int main(int argc, char *argv[]) {
 
   const char *help_msg =
@@ -280,14 +298,10 @@ int main(int argc, char *argv[]) {
   char *output_file_name = NULL;
 
   const struct option long_opts[] = {
-      {"all", no_argument, 0, 'a'},     
-      {"generate", optional_argument, 0, 'g'},
-      {"unique", no_argument, 0, 'u'},  
-      {"output", required_argument, 0, 'o'},
-      {"verbose", no_argument, 0, 'v'}, 
-      {"version", no_argument, 0, 'V'},
-      {"help", no_argument, 0, 'h'},    
-      {NULL, no_argument, NULL, 0}};
+      {"all", no_argument, 0, 'a'},     {"generate", optional_argument, 0, 'g'},
+      {"unique", no_argument, 0, 'u'},  {"output", required_argument, 0, 'o'},
+      {"verbose", no_argument, 0, 'v'}, {"version", no_argument, 0, 'V'},
+      {"help", no_argument, 0, 'h'},    {NULL, no_argument, NULL, 0}};
 
   int optc;
   while ((optc = getopt_long(argc, argv, "ag::uo:vVh", long_opts, NULL)) !=
@@ -355,6 +369,8 @@ int main(int argc, char *argv[]) {
     fprintf(program_output, "---Generator mode---\n");
     solver = false;
 
+    grid_generator(unique, grid_size, program_output);
+
     return EXIT_SUCCESS;
   }
 
@@ -394,6 +410,9 @@ int main(int argc, char *argv[]) {
       grid_free(grid);
 
       if (count_solved_grid != 0) {
+
+        fprintf(program_output, "# Number of solutions: %ld\n",
+                count_solved_grid);
         fprintf(program_output, "The grid is solved!\n");
         are_all_grids_consistent &= true;
 

@@ -131,7 +131,25 @@ colors_t colors_leftmost(const colors_t colors) {
   return colors_set(pos - 1);
 }
 
-colors_t colors_random(const colors_t colors) {
+size_t color_index(colors_t colors){
+  
+  if (colors == 0) {
+    return colors_empty();
+  }
+
+  size_t pos = 0;
+  bool is_found = false;
+  
+  while(!is_found){
+    if(colors_is_in(colors, pos)){
+      is_found = true;
+    }
+    pos++;
+  }
+  return pos - 1;
+}
+
+colors_t colors_random(colors_t colors) {
 
   if (colors == 0) {
     return colors_empty();
@@ -231,29 +249,29 @@ static bool cross_hatching(colors_t *subgrid[], size_t size) {
 static bool lone_number(colors_t *subgrid[], size_t size) {
 
   bool subgrid_changed = false;
-  colors_t unique_colors = colors_empty();
+  colors_t all_colors = colors_empty();
   colors_t common_colors = colors_empty();
 
   for (size_t i = 0; i < size; i++) {
 
     if (!colors_is_singleton(*subgrid[i])) {
 
-      colors_t intersection = colors_and(unique_colors, *subgrid[i]);
-      unique_colors = colors_or(unique_colors, *subgrid[i]);
+      colors_t intersection = colors_and(all_colors, *subgrid[i]);
+      all_colors = colors_or(all_colors, *subgrid[i]);
       common_colors = colors_or(common_colors, intersection);
     }
   }
 
-  unique_colors = colors_subtract(unique_colors, common_colors);
+  all_colors = colors_subtract(all_colors, common_colors);
 
-  if (unique_colors != 0) {
+  if (all_colors != 0) {
 
     for (size_t i = 0; i < size; i++) {
 
       if (!colors_is_singleton(*subgrid[i]) &&
-          colors_and(*subgrid[i], unique_colors) != 0) {
+          colors_and(*subgrid[i], all_colors) != 0) {
 
-        *subgrid[i] = colors_leftmost(colors_and(*subgrid[i], unique_colors));
+        *subgrid[i] = colors_leftmost(colors_and(*subgrid[i], all_colors));
         subgrid_changed = true;
       }
     }
