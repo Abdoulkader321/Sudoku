@@ -287,7 +287,7 @@ static grid_t *grid_solver_2(grid_t *grid, const mode_t mode) {
     grid_t *backtracking_res = grid_solver_2(grid_cpy, mode);
 
     if (backtracking_res != NULL) {
-
+      grid_free(grid);
       grid_choice_free(choice);
       return backtracking_res;
     }
@@ -413,7 +413,7 @@ int main(int argc, char *argv[]) {
   }
 
   if (generate) {
-    fprintf(program_output, "---Generator mode---\n");
+    fprintf(program_output, "# Generator mode \n");
     solver = false;
 
     grid_t *grid = grid_generator(unique, grid_size, program_output);
