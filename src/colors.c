@@ -131,17 +131,17 @@ colors_t colors_leftmost(const colors_t colors) {
   return colors_set(pos - 1);
 }
 
-size_t color_index(colors_t colors){
-  
+size_t color_index(colors_t colors) {
+
   if (colors == 0) {
     return colors_empty();
   }
 
   size_t pos = 0;
   bool is_found = false;
-  
-  while(!is_found){
-    if(colors_is_in(colors, pos)){
+
+  while (!is_found) {
+    if (colors_is_in(colors, pos)) {
       is_found = true;
     }
     pos++;
@@ -284,42 +284,37 @@ static bool naked_subset(colors_t *subgrid[], size_t size) {
 
   bool subgrid_changed = false;
 
-  for (size_t N = 2; N < ceil(size / 2); N++) {
+  for (size_t i = 0; i < size; i++) {
 
-    for (size_t i = 0; i < size; i++) {
+    if (!colors_is_singleton(*subgrid[i])) {
 
-      if (colors_count(*subgrid[i]) == N) {
+      colors_t *tab_index[size];
+      size_t index = 0;
 
-        size_t nb_cells_with_no_N_candidates = 0;
-        size_t index_cells_with_no_N_candidates[size];
+      size_t compteur = 0;
 
-        for (size_t j = 0; j < size; j++) {
+      for (size_t j = 0; j < size; j++) {
 
-          if (colors_is_singleton(*subgrid[j]) ||
-              !colors_is_subset(*subgrid[j], *subgrid[i])) {
-            index_cells_with_no_N_candidates[nb_cells_with_no_N_candidates] = j;
-            nb_cells_with_no_N_candidates++;
+        if (!colors_is_singleton(*subgrid[j])) {
+          if (colors_is_subset(*subgrid[j], *subgrid[i])) {
+            compteur++;
+          } else {
+            tab_index[index] = subgrid[j];
+            index++;
           }
         }
+      }
 
-        if (size - nb_cells_with_no_N_candidates == N) {
-          // naked N found
+      if (compteur == colors_count(*subgrid[i])) {
 
-          /* Naked subset */
-          for (size_t k = 0; k < nb_cells_with_no_N_candidates; k++) {
+        for (size_t j = 0; j < index; j++) {
 
-            colors_t other_cell_colors =
-                *subgrid[index_cells_with_no_N_candidates[k]];
+          colors_t colors_removed =
+              colors_discard_B_from_A(*tab_index[j], *subgrid[i]);
 
-            colors_t new_other_cell_colors =
-                colors_discard_B_from_A(other_cell_colors, *subgrid[i]);
-
-            if (new_other_cell_colors != other_cell_colors) {
-
-              *subgrid[index_cells_with_no_N_candidates[k]] =
-                  new_other_cell_colors;
-              subgrid_changed = true;
-            }
+          if (!colors_is_equal(colors_removed, *tab_index[j])) {
+            subgrid_changed = true;
+            *tab_index[j] = colors_removed;
           }
         }
       }
