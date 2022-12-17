@@ -12,6 +12,7 @@
 #include <string.h>
 
 #define GRID_DEFAULT_SIZE 9
+#define FILL_RATE 0.6
 
 static bool verbose = false;
 static size_t count_solved_grid = 0;
@@ -254,18 +255,64 @@ static size_t grid_solver(grid_t *grid, const mode_t mode, FILE *fd) {
   }
 }
 
+static grid_t *grid_solver_2(grid_t *grid, const mode_t mode) {
+
+  grid_t *grid_cpy;
+  choice_t *choice;
+
+  size_t res = grid_heuristics(grid);
+
+  switch (res) {
+
+  case 1:
+    return grid;
+
+  case 2:
+    return NULL;
+
+  case 0:
+
+    grid_cpy = grid_copy(grid);
+    if (grid_cpy == NULL) {
+      errx(EXIT_FAILURE, "error: Error while doing a deep code of grid\n");
+    }
+
+    choice = grid_choice(grid_cpy);
+    if (choice == NULL) {
+      // This case will normally never happen
+      errx(EXIT_FAILURE, "Any choice is possible\n");
+    }
+
+    grid_choice_apply(grid_cpy, choice);
+    grid_t *backtracking_res = grid_solver_2(grid_cpy, mode);
+
+    if (backtracking_res != NULL) {
+
+      grid_choice_free(choice);
+      return backtracking_res;
+    }
+
+    grid_free(grid_cpy);
+
+    grid_choice_discard(grid, choice);
+    grid_choice_free(choice);
+
+    return grid_solver_2(grid, mode);
+
+  default:
+    return NULL;
+  }
+}
+
 static grid_t *grid_generator(const bool is_unique_mode, const size_t size,
                               FILE *fd) {
 
   grid_t *grid = get_new_grid(size);
-  grid = grid_solver(grid, mode_first, fd);
-  grid_print(grid, fd);
-  printf("HEY");
+  grid = grid_solver_2(grid, mode_first);
 
   if (!is_unique_mode) {
-    size_t nb_colors_to_remove = ceil(size * size * 0.4);
-    remove_some_colors(grid, size, nb_colors_to_remove);
-    // grid_print(grid, fd);
+    size_t nb_colors_to_remove = ceil(size * size * FILL_RATE);
+    remove_some_colors(grid, nb_colors_to_remove);
   }
 
   return grid;
@@ -369,8 +416,9 @@ int main(int argc, char *argv[]) {
     fprintf(program_output, "---Generator mode---\n");
     solver = false;
 
-    grid_generator(unique, grid_size, program_output);
-
+    grid_t *grid = grid_generator(unique, grid_size, program_output);
+    grid_print(grid, program_output);
+    grid_free(grid);
     return EXIT_SUCCESS;
   }
 

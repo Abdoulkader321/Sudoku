@@ -25,14 +25,14 @@ void grid_print(const grid_t *grid, FILE *fd) {
 
   size_t max_cells_colors = 0;
 
-  for (size_t i = 0; i < grid_size; i++) {
+  /**for (size_t i = 0; i < grid_size; i++) {
     for (size_t j = 0; j < grid_size; j++) {
       size_t nb_colors = colors_count(grid->cells[i][j]);
       if (nb_colors > max_cells_colors) {
         max_cells_colors = nb_colors;
       }
     }
-  }
+  }*/
 
   for (size_t i = 0; i < grid_size; i++) {
     for (size_t j = 0; j < grid_size; j++) {
@@ -51,10 +51,10 @@ void grid_print(const grid_t *grid, FILE *fd) {
         fprintf(fd, "%s", colors);
       }
 
-      for (size_t k = nb_colors; k <= max_cells_colors; k++) {
-        fprintf(fd, " ");
-      }
+      /*for (size_t k = nb_colors; k <= max_cells_colors; k++) {
 
+      }*/
+      fprintf(fd, " ");
       free(colors);
     }
     fprintf(fd, "\n");
@@ -518,6 +518,7 @@ choice_t *grid_choice(grid_t *grid) {
 grid_t *get_new_grid(const size_t size) {
 
   grid_t *grid = grid_alloc(size);
+  grid->size = size;
   colors_t all_colors = colors_full(size);
 
   if (!seed_intialized) {
@@ -540,19 +541,20 @@ grid_t *get_new_grid(const size_t size) {
   return grid;
 }
 
-void remove_some_colors(grid_t* grid, const size_t size, const nb_colors_to_remove){
+void remove_some_colors(grid_t *grid, const nb_colors_to_remove) {
 
-  size_t nb_colors_to_remove_per_line = ceil((size*size) / nb_colors_to_remove);
+  size_t size = grid->size;
+
+  size_t nb_colors_to_remove_per_line =
+      ceil(nb_colors_to_remove / size);
   colors_t full_colors = colors_full(size);
 
-  for(size_t i = 0; i < size; i++){
+  for (size_t i = 0; i < size; i++) {
 
-    for(size_t j = 0; j < nb_colors_to_remove_per_line; j++){
+    for (size_t j = 0; j < nb_colors_to_remove_per_line; j++) {
 
-      size_t index = rand() % size; 
+      size_t index = rand() % size;
       grid->cells[i][index] = full_colors;
     }
-
   }
-
 }
