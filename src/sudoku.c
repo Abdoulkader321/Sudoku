@@ -12,7 +12,7 @@
 #include <string.h>
 
 #define GRID_DEFAULT_SIZE 9
-#define FILL_RATE 0.6
+#define FILL_RATE 0.4
 
 static bool verbose = false;
 static size_t count_solved_grid = 0;
@@ -337,7 +337,7 @@ static grid_t *grid_generator(const bool is_unique_mode, const size_t size,
     int tab[grid->size];
     int index = 0;
     int nb_color_removed = 0;
-    size_t nb_color_to_remove = grid->size * grid->size * 0.5;
+    size_t nb_color_to_remove = grid->size * grid->size * FILL_RATE;
     choice_t *choice;
     while (nb_color_removed < nb_color_to_remove) {
 
