@@ -255,7 +255,7 @@ static size_t grid_solver(grid_t *grid, const mode_t mode, FILE *fd) {
   }
 }
 
-static grid_t *grid_solver_2(grid_t *grid, const mode_t mode) {
+static grid_t *grid_solver_2(grid_t *grid, const generator_t mode) {
 
   grid_t *grid_cpy;
   choice_t *choice;
@@ -265,6 +265,7 @@ static grid_t *grid_solver_2(grid_t *grid, const mode_t mode) {
   switch (res) {
 
   case 1:
+    count_solved_grid++;
     return grid;
 
   case 2:
@@ -287,13 +288,24 @@ static grid_t *grid_solver_2(grid_t *grid, const mode_t mode) {
     grid_t *backtracking_res = grid_solver_2(grid_cpy, mode);
 
     if (backtracking_res != NULL) {
-      grid_free(grid);
-      grid_choice_free(choice);
-      return backtracking_res;
+      bool is_finished = false;
+
+      if (mode == mode_not_unique) {
+        is_finished = true;
+      } else if ((mode == mode_unique) && count_solved_grid >= 2) {
+        is_finished = true;
+      }
+
+      if (is_finished) {
+        grid_free(grid);
+        grid_choice_free(choice);
+        return backtracking_res;
+      }
+
+      
     }
 
     grid_free(grid_cpy);
-
     grid_choice_discard(grid, choice);
     grid_choice_free(choice);
 
@@ -308,11 +320,44 @@ static grid_t *grid_generator(const bool is_unique_mode, const size_t size,
                               FILE *fd) {
 
   grid_t *grid = get_new_grid(size);
-  grid = grid_solver_2(grid, mode_first);
+  generator_t mode = is_unique_mode ? mode_unique : mode_not_unique;
+
+  grid = grid_solver_2(grid, mode);
 
   if (!is_unique_mode) {
     size_t nb_colors_to_remove = ceil(size * size * FILL_RATE);
     remove_some_colors(grid, nb_colors_to_remove);
+  } else {
+
+    grid_t *grid_cpy = grid_copy(grid);
+    if (grid_cpy == NULL) {
+      errx(EXIT_FAILURE, "error: Error while doing a deep code of grid\n");
+    }
+
+    int tab[grid->size];
+    int index = 0;
+    int nb_color_removed = 0;
+    size_t nb_color_to_remove = grid->size * grid->size * 0.5;
+    choice_t *choice;
+    while (nb_color_removed < nb_color_to_remove) {
+
+      choice = remove_one_color(grid, tab, index);
+      grid_cpy = grid_copy(grid);
+
+      count_solved_grid = 0;
+      grid_solver_2(grid_cpy, mode);
+
+      if (count_solved_grid == 1) {
+        nb_color_removed++;
+
+      } else {
+        grid->cells[choice->row][choice->column] = choice->color;
+        tab[index] = choice->column + 10 * choice->row;
+        index++;
+
+        nb_color_removed--;
+      }
+    }
   }
 
   return grid;
@@ -455,6 +500,7 @@ int main(int argc, char *argv[]) {
 
       count_solved_grid = 0;
       grid_solver(grid, all ? mode_all : mode_first, program_output);
+      // grid_solver_2(grid, true);
       grid_free(grid);
 
       if (count_solved_grid != 0) {

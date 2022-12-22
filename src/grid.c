@@ -545,9 +545,13 @@ void remove_some_colors(grid_t *grid, const nb_colors_to_remove) {
 
   size_t size = grid->size;
 
-  size_t nb_colors_to_remove_per_line =
-      ceil(nb_colors_to_remove / size);
+  size_t nb_colors_to_remove_per_line = ceil(nb_colors_to_remove / size);
   colors_t full_colors = colors_full(size);
+
+  if (!seed_intialized) {
+    srand(time(NULL));
+    seed_intialized = true;
+  }
 
   for (size_t i = 0; i < size; i++) {
 
@@ -557,4 +561,42 @@ void remove_some_colors(grid_t *grid, const nb_colors_to_remove) {
       grid->cells[i][index] = full_colors;
     }
   }
+}
+
+choice_t *remove_one_color(grid_t *grid, int *tab, int tab_size) {
+
+  bool is_finished = false;
+
+  choice_t *choice = malloc(sizeof(choice_t));
+  if (choice == NULL) {
+    return NULL;
+  }
+  if (!seed_intialized) {
+    srand(time(NULL));
+    seed_intialized = true;
+  }
+  size_t row = 0;
+  size_t column = 0;
+  while (!is_finished) {
+    row = rand() % grid->size;
+    column = rand() % grid->size;
+    size_t tmp = row * 10 + column;
+
+    bool is_in_tab = false;
+
+    for (size_t i = 0; i < tab_size; i++) {
+      if (tab[i] == tmp) {
+        is_in_tab = true;
+        break;
+      }
+    }
+
+    is_finished = !is_in_tab && colors_is_singleton(grid->cells[row][column]);
+  }
+
+  choice->row = row;
+  choice->column = column;
+  choice->color = grid->cells[row][column];
+  grid->cells[row][column] = colors_full(grid->size);
+  return choice;
 }
