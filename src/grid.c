@@ -380,6 +380,131 @@ static bool grid_is_solved(grid_t *grid) {
   return true;
 }
 
+bool remove_colors_from_row(grid_t *grid, colors_t colors_to_remove, size_t row,
+                            size_t column_excluded_start,
+                            size_t column_excluded_end) {
+
+  bool changed = false;
+
+  size_t grid_size_sqrt = get_sqrt(grid->size);
+
+  for (size_t column = 0; column < grid->size; column++) {
+
+    if (column < column_excluded_start || column > column_excluded_end) {
+
+      colors_t colors_removed_from_cell =
+          colors_discard_B_from_A(grid->cells[row][column], colors_to_remove);
+
+      if (!colors_is_singleton(grid->cells[row][column]) &&
+          colors_removed_from_cell != grid->cells[row][column]) {
+        changed = true;
+        grid->cells[row][column] = colors_removed_from_cell;
+      }
+    }
+  }
+  return changed;
+}
+
+bool remove_colors_from_column(grid_t *grid, colors_t colors_to_remove,
+                               size_t column, size_t row_excluded_start,
+                               size_t row_excluded_end) {
+
+  bool changed = false;
+
+  size_t grid_size_sqrt = get_sqrt(grid->size);
+
+  for (size_t row = 0; row < grid->size; row++) {
+
+    if (row < row_excluded_start || row > row_excluded_end) {
+
+      colors_t colors_removed_from_cell =
+          colors_discard_B_from_A(grid->cells[row][column], colors_to_remove);
+
+      if (!colors_is_singleton(grid->cells[row][column]) &&
+          colors_removed_from_cell != grid->cells[row][column]) {
+        changed = true;
+        grid->cells[row][column] = colors_removed_from_cell;
+      }
+    }
+  }
+  return changed;
+}
+
+bool subgrid_locked_candidates(grid_t *grid, colors_t *subgrid[],
+                               size_t block_start_row,
+                               size_t block_start_column) {
+  size_t grid_size_sqrt = get_sqrt(grid->size);
+  colors_t row_colors[grid_size_sqrt];
+  size_t index = 0;
+  bool changed = false;
+
+  changed |= cross_hatching(subgrid, grid->size);
+  // changed |= lone_number(subgrid, grid->size);
+
+  for (size_t i = 0; i < grid->size; i += grid_size_sqrt) {
+    colors_t colors = 0;
+    for (size_t j = 0; j < grid_size_sqrt; j++) {
+      if (!colors_is_singleton(*subgrid[i + j])) {
+        colors = colors_or(colors, *subgrid[i + j]);
+      }
+    }
+    row_colors[index] = colors;
+    index++;
+  }
+
+  for (size_t row = 0; row < grid_size_sqrt; row++) {
+    colors_t colors = 0;
+    for (size_t j = 0; j < grid_size_sqrt; j++) {
+
+      if (row != j) {
+        colors = colors_or(colors, row_colors[j]);
+      }
+    }
+    colors_t colors_to_remove =
+        colors_and(colors_negate(colors), row_colors[row]);
+    if (colors_to_remove != 0) {
+      changed |= remove_colors_from_row(
+          grid, colors_to_remove, row + block_start_row, block_start_column,
+          block_start_column + grid_size_sqrt - 1);
+    }
+  }
+
+  // changed |= cross_hatching(subgrid, grid->size);
+
+  colors_t column_colors[grid_size_sqrt];
+  index = 0;
+
+  for (size_t i = 0; i < grid_size_sqrt; i++) {
+    colors_t colors = 0;
+    for (size_t j = 0; j < grid->size; j += grid_size_sqrt) {
+      if (!colors_is_singleton(*subgrid[i + j])) {
+        colors = colors_or(colors, *subgrid[i + j]);
+      }
+    }
+    column_colors[index] = colors;
+    index++;
+  }
+
+  for (size_t column = 0; column < grid_size_sqrt; column++) {
+    colors_t colors = 0;
+    for (size_t j = 0; j < grid_size_sqrt; j++) {
+
+      if (column != j) {
+        colors = colors_or(colors, column_colors[j]);
+      }
+    }
+    colors_t colors_to_remove =
+        colors_and(colors_negate(colors), column_colors[column]);
+    if (colors_to_remove != 0) {
+      changed |= remove_colors_from_column(
+          grid, colors_to_remove, column + block_start_column, block_start_row,
+          block_start_row + grid_size_sqrt - 1);
+    }
+  }
+
+  return changed;
+}
+
 size_t grid_heuristics(grid_t *grid) {
 
   bool is_fixpoint_not_reached = true;
@@ -450,6 +575,36 @@ size_t grid_heuristics(grid_t *grid) {
       is_fixpoint_not_reached |= subgrid_heuristics(subgrid, grid->size);
       if (!subgrid_consistency(subgrid, grid->size)) {
         return status_code_grid_is_inconsistent;
+      }
+    }
+
+    if (!is_fixpoint_not_reached) {
+
+      for (size_t block = 0; block < grid->size; block++) {
+
+        colors_t *subgrid[grid->size];
+        size_t index = 0;
+
+        size_t row_start = ((block / grid_size_sqrt) * grid_size_sqrt);
+        size_t column_start = ((block % grid_size_sqrt) * grid_size_sqrt);
+
+        for (size_t row = row_start; row < grid_size_sqrt + row_start; row++) {
+
+          for (size_t column = column_start;
+               column < grid_size_sqrt + column_start; column++) {
+
+            subgrid[index] = &grid->cells[row][column];
+            index++;
+          }
+        }
+
+        is_fixpoint_not_reached |=
+            subgrid_locked_candidates(grid, subgrid, row_start, column_start);
+
+        if (block % grid_size_sqrt == 0 && !grid_is_consistent(grid)) {
+          // grid_print(grid, stdout);
+          return status_code_grid_is_inconsistent;
+        }
       }
     }
   }

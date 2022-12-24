@@ -208,7 +208,7 @@ static void display_subgrid(colors_t *subgrid[], size_t size) {
  *  + True if 'cross-hatching' heuristic could be applied on subgrid
  *  + False otherwise
  */
-static bool cross_hatching(colors_t *subgrid[], size_t size) {
+bool cross_hatching(colors_t *subgrid[], size_t size) {
 
   bool subgrid_changed = false;
   bool is_finished = false;
@@ -246,7 +246,7 @@ static bool cross_hatching(colors_t *subgrid[], size_t size) {
  *  + True if 'lone-number' heuristic could be applied on subgrid
  *  + False otherwise
  */
-static bool lone_number(colors_t *subgrid[], size_t size) {
+bool lone_number(colors_t *subgrid[], size_t size) {
 
   bool subgrid_changed = false;
   colors_t all_colors = colors_empty();
@@ -372,8 +372,10 @@ bool subgrid_heuristics(colors_t *subgrid[], size_t size) {
 
   subgrid_changed |= cross_hatching(subgrid, size);
   subgrid_changed |= lone_number(subgrid, size);
-  subgrid_changed |= naked_subset(subgrid, size);
-  subgrid_changed |= hidden_subset(subgrid, size);
+  if (subgrid_changed) {
+    subgrid_changed |= naked_subset(subgrid, size);
+    subgrid_changed |= hidden_subset(subgrid, size);
+  }
 
   return subgrid_changed;
 }

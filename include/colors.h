@@ -72,4 +72,7 @@ colors_t colors_random(colors_t colors);
 /* Returns True if heuristics has been applied on grid, False otherwise */
 bool subgrid_heuristics(colors_t *subgrid[], size_t size);
 
+bool cross_hatching(colors_t *subgrid[], size_t size);
+bool lone_number(colors_t *subgrid[], size_t size);
+
 #endif /* COLORS_H */
