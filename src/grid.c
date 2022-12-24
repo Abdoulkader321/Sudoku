@@ -23,22 +23,10 @@ struct choice_t {
 void grid_print(const grid_t *grid, FILE *fd) {
   size_t grid_size = grid_get_size(grid);
 
-  size_t max_cells_colors = 0;
-
-  /**for (size_t i = 0; i < grid_size; i++) {
-    for (size_t j = 0; j < grid_size; j++) {
-      size_t nb_colors = colors_count(grid->cells[i][j]);
-      if (nb_colors > max_cells_colors) {
-        max_cells_colors = nb_colors;
-      }
-    }
-  }*/
-
   for (size_t i = 0; i < grid_size; i++) {
     for (size_t j = 0; j < grid_size; j++) {
 
       char *colors = grid_get_cell(grid, i, j);
-      size_t nb_colors = strlen(colors);
 
       if (colors == NULL) {
         return;
@@ -51,9 +39,6 @@ void grid_print(const grid_t *grid, FILE *fd) {
         fprintf(fd, "%s", colors);
       }
 
-      /*for (size_t k = nb_colors; k <= max_cells_colors; k++) {
-
-      }*/
       fprintf(fd, " ");
       free(colors);
     }
@@ -386,19 +371,18 @@ bool remove_colors_from_row(grid_t *grid, colors_t colors_to_remove, size_t row,
 
   bool changed = false;
 
-  size_t grid_size_sqrt = get_sqrt(grid->size);
-
   for (size_t column = 0; column < grid->size; column++) {
 
     if (column < column_excluded_start || column > column_excluded_end) {
 
+      colors_t *cell_colors = &grid->cells[row][column];
       colors_t colors_removed_from_cell =
-          colors_discard_B_from_A(grid->cells[row][column], colors_to_remove);
+          colors_discard_B_from_A(*cell_colors, colors_to_remove);
 
-      if (!colors_is_singleton(grid->cells[row][column]) &&
-          colors_removed_from_cell != grid->cells[row][column]) {
+      if (!colors_is_singleton(*cell_colors) &&
+          colors_removed_from_cell != *cell_colors) {
         changed = true;
-        grid->cells[row][column] = colors_removed_from_cell;
+        *cell_colors = colors_removed_from_cell;
       }
     }
   }
@@ -411,19 +395,18 @@ bool remove_colors_from_column(grid_t *grid, colors_t colors_to_remove,
 
   bool changed = false;
 
-  size_t grid_size_sqrt = get_sqrt(grid->size);
-
   for (size_t row = 0; row < grid->size; row++) {
 
     if (row < row_excluded_start || row > row_excluded_end) {
 
+      colors_t *cell_colors = &grid->cells[row][column];
       colors_t colors_removed_from_cell =
-          colors_discard_B_from_A(grid->cells[row][column], colors_to_remove);
+          colors_discard_B_from_A(*cell_colors, colors_to_remove);
 
-      if (!colors_is_singleton(grid->cells[row][column]) &&
-          colors_removed_from_cell != grid->cells[row][column]) {
+      if (!colors_is_singleton(*cell_colors) &&
+          colors_removed_from_cell != *cell_colors) {
         changed = true;
-        grid->cells[row][column] = colors_removed_from_cell;
+        *cell_colors = colors_removed_from_cell;
       }
     }
   }
@@ -602,6 +585,7 @@ size_t grid_heuristics(grid_t *grid) {
             subgrid_locked_candidates(grid, subgrid, row_start, column_start);
 
         if (block % grid_size_sqrt == 0 && !grid_is_consistent(grid)) {
+
           // grid_print(grid, stdout);
           return status_code_grid_is_inconsistent;
         }
@@ -696,7 +680,7 @@ grid_t *get_new_grid(const size_t size) {
   return grid;
 }
 
-void remove_some_colors(grid_t *grid, const nb_colors_to_remove) {
+void remove_some_colors(grid_t *grid, size_t nb_colors_to_remove) {
 
   size_t size = grid->size;
 
@@ -718,7 +702,7 @@ void remove_some_colors(grid_t *grid, const nb_colors_to_remove) {
   }
 }
 
-choice_t *remove_one_color(grid_t *grid, int *tab, int tab_size) {
+choice_t *remove_one_color(grid_t *grid, int *tab, size_t tab_size) {
 
   bool is_finished = false;
 
@@ -735,7 +719,7 @@ choice_t *remove_one_color(grid_t *grid, int *tab, int tab_size) {
   while (!is_finished) {
     row = rand() % grid->size;
     column = rand() % grid->size;
-    size_t tmp = row * 10 + column;
+    int tmp = row * 10 + column;
 
     bool is_in_tab = false;
 

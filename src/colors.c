@@ -175,35 +175,6 @@ colors_t colors_random(colors_t colors) {
   return colors_set(pos - 1);
 }
 
-static char *colors2string(const colors_t colors, size_t grid_size) {
-
-  size_t nb_colors = colors_count(colors);
-
-  char *colors_string = malloc(sizeof(char) * (nb_colors + 1));
-  if (colors_string == NULL) {
-    return NULL;
-  }
-
-  size_t index_colors = 0;
-  for (size_t i = 0; i < grid_size; i++) {
-    if (colors_is_in(colors, i)) {
-      colors_string[index_colors] = color_table[i];
-      index_colors++;
-    }
-  }
-  colors_string[nb_colors] = '\0';
-
-  return colors_string;
-}
-
-static void display_subgrid(colors_t *subgrid[], size_t size) {
-
-  for (size_t i = 0; i < size; i++) {
-    printf("%s ", colors2string(*subgrid[i], size));
-  }
-  printf("\n");
-}
-
 /** Return
  *  + True if 'cross-hatching' heuristic could be applied on subgrid
  *  + False otherwise

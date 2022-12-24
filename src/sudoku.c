@@ -316,8 +316,7 @@ static grid_t *grid_solver_2(grid_t *grid, const generator_t mode) {
   }
 }
 
-static grid_t *grid_generator(const bool is_unique_mode, const size_t size,
-                              FILE *fd) {
+static grid_t *grid_generator(const bool is_unique_mode, const size_t size) {
 
   grid_t *grid = get_new_grid(size);
   generator_t mode = is_unique_mode ? mode_unique : mode_not_unique;
@@ -335,8 +334,8 @@ static grid_t *grid_generator(const bool is_unique_mode, const size_t size,
     }
 
     int tab[grid->size];
-    int index = 0;
-    int nb_color_removed = 0;
+    size_t index = 0;
+    size_t nb_color_removed = 0;
     size_t nb_color_to_remove = grid->size * grid->size * FILL_RATE;
     choice_t *choice;
     while (nb_color_removed < nb_color_to_remove) {
@@ -382,7 +381,6 @@ int main(int argc, char *argv[]) {
   bool unique = false;
   bool all = false;
   bool generate = false;
-  bool solver = true;
 
   int grid_size = GRID_DEFAULT_SIZE;
 
@@ -459,9 +457,8 @@ int main(int argc, char *argv[]) {
 
   if (generate) {
     fprintf(program_output, "# Generator mode \n");
-    solver = false;
 
-    grid_t *grid = grid_generator(unique, grid_size, program_output);
+    grid_t *grid = grid_generator(unique, grid_size);
     grid_print(grid, program_output);
     grid_free(grid);
     return EXIT_SUCCESS;

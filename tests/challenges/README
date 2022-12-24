@@ -11,6 +11,9 @@ real    0m6.720s
 user    0m6.716s
 sys     0m0.004s
 
+You can also run a full contest by copying sudoku solvers in binaries/
+and running the RunContest.sh script.
+
 
 Leve1 1 and Level 2
 -------------------

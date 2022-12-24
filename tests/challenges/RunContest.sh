@@ -11,7 +11,7 @@ for exec in ${BINARY_DIR}/*-sudoku; do
     for level in level-0[1-5] ; do
 	echo -n "$(basename ${level}): ";
 	start=$(date +%s);
-	timeout $TIMEOUT (./${exec} --all ${level}/*.sku > /dev/null)
+	timeout $TIMEOUT ./${exec} --all ${level}/*.sku > /dev/null
 	ret="$?";
 	end=$(date +%s);
 	if [ "${ret}" -eq "0" ] ; then
