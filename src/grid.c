@@ -629,27 +629,33 @@ void grid_choice_print(const choice_t *choice, FILE *fd) {
 
 choice_t *grid_choice(grid_t *grid) {
 
-  for (size_t N = 2; N <= grid->size; N++) {
+  size_t choice_row = 0;
+  size_t choice_column = 0;
+  size_t choice_cell_length = grid->size;
 
-    for (size_t row = 0; row < grid->size; row++) {
+  for (size_t row = 0; row < grid->size; row++) {
+    for (size_t column = 0; column < grid->size; column++) {
 
-      for (size_t column = 0; column < grid->size; column++) {
-
-        if (colors_count(grid->cells[row][column]) == N) {
-
-          choice_t *choice = malloc(sizeof(choice_t));
-          if (choice == NULL) {
-            return NULL;
-          }
-
-          choice->row = row;
-          choice->column = column;
-          choice->color = colors_rightmost(grid->cells[row][column]);
-
-          return choice;
-        }
+      size_t tmp = colors_count(grid->cells[row][column]);
+      if (tmp > 1 && tmp < choice_cell_length) {
+        choice_row = row;
+        choice_column = column;
+        choice_cell_length = tmp;
       }
     }
+  }
+
+  if (choice_cell_length > 1) {
+    choice_t *choice = malloc(sizeof(choice_t));
+    if (choice == NULL) {
+      return NULL;
+    }
+
+    choice->row = choice_row;
+    choice->column = choice_column;
+    choice->color = colors_rightmost(grid->cells[choice_row][choice_column]);
+
+    return choice;
   }
   return NULL;
 }
