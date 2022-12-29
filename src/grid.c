@@ -293,11 +293,9 @@ bool grid_is_consistent(grid_t *grid) {
   size_t index;
 
   for (size_t row = 0; row < grid->size; row++) {
-
     index = 0;
 
     for (size_t column = 0; column < grid->size; column++) {
-
       subgrid[index] = &grid->cells[row][column];
       index++;
     }
@@ -308,11 +306,9 @@ bool grid_is_consistent(grid_t *grid) {
   }
 
   for (size_t column = 0; column < grid->size; column++) {
-
     index = 0;
 
     for (size_t row = 0; row < grid->size; row++) {
-
       subgrid[index] = &grid->cells[row][column];
       index++;
     }
@@ -325,18 +321,14 @@ bool grid_is_consistent(grid_t *grid) {
   size_t grid_size_sqrt = get_sqrt(grid->size);
 
   for (size_t block = 0; block < grid->size; block++) {
-
     index = 0;
-
     size_t row_start = ((block / grid_size_sqrt) * grid_size_sqrt);
 
     for (size_t row = row_start; row < grid_size_sqrt + row_start; row++) {
-
       size_t column_start = ((block % grid_size_sqrt) * grid_size_sqrt);
 
       for (size_t column = column_start; column < grid_size_sqrt + column_start;
            column++) {
-
         subgrid[index] = &grid->cells[row][column];
         index++;
       }
@@ -492,9 +484,9 @@ size_t grid_heuristics(grid_t *grid) {
 
   bool is_fixpoint_not_reached = true;
 
-  static const size_t status_code_grid_is_solved = 1;
-  static const size_t status_code_grid_is_not_solved_and_consistent = 0;
-  static const size_t status_code_grid_is_inconsistent = 2;
+  const size_t status_code_grid_is_solved = 1;
+  const size_t status_code_grid_is_not_solved_and_consistent = 0;
+  const size_t status_code_grid_is_inconsistent = 2;
 
   while (is_fixpoint_not_reached) {
 

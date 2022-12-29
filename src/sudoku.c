@@ -7,6 +7,7 @@
 #include <stdlib.h>
 #include <unistd.h>
 
+#include <assert.h>
 #include <err.h>
 #include <getopt.h>
 #include <string.h>
@@ -82,7 +83,6 @@ static grid_t *file_parser(char *filename) {
       break;
 
     case ' ':
-
     case '\t':
       break;
 
@@ -231,10 +231,7 @@ static size_t grid_solver(grid_t *grid, const mode_t mode, FILE *fd) {
     }
 
     choice = grid_choice(grid_cpy);
-    if (choice == NULL) {
-      // This case will normally never happen
-      errx(EXIT_FAILURE, "Any choice is possible\n");
-    }
+    assert(choice != NULL);
 
     grid_choice_apply(grid_cpy, choice);
     size_t backtracking_res = grid_solver(grid_cpy, mode, fd);
@@ -301,8 +298,6 @@ static grid_t *grid_solver_2(grid_t *grid, const generator_t mode) {
         grid_choice_free(choice);
         return backtracking_res;
       }
-
-      
     }
 
     grid_free(grid_cpy);
@@ -387,11 +382,14 @@ int main(int argc, char *argv[]) {
   FILE *program_output = stdout;
   char *output_file_name = NULL;
 
-  const struct option long_opts[] = {
-      {"all", no_argument, 0, 'a'},     {"generate", optional_argument, 0, 'g'},
-      {"unique", no_argument, 0, 'u'},  {"output", required_argument, 0, 'o'},
-      {"verbose", no_argument, 0, 'v'}, {"version", no_argument, 0, 'V'},
-      {"help", no_argument, 0, 'h'},    {NULL, no_argument, NULL, 0}};
+  const struct option long_opts[] = {{"all", no_argument, NULL, 'a'},
+                                     {"generate", optional_argument, NULL, 'g'},
+                                     {"unique", no_argument, NULL, 'u'},
+                                     {"output", required_argument, NULL, 'o'},
+                                     {"verbose", no_argument, NULL, 'v'},
+                                     {"version", no_argument, NULL, 'V'},
+                                     {"help", no_argument, NULL, 'h'},
+                                     {NULL, no_argument, NULL, no_argument}};
 
   int optc;
   while ((optc = getopt_long(argc, argv, "ag::uo:vVh", long_opts, NULL)) !=
