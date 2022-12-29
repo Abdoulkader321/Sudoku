@@ -342,7 +342,10 @@ bool subgrid_heuristics(colors_t *subgrid[], size_t size) {
   bool subgrid_changed = false;
   subgrid_changed |= cross_hatching(subgrid, size);
   subgrid_changed |= lone_number(subgrid, size);
-  subgrid_changed |= naked_subset(subgrid, size);
-
+  if(subgrid_changed){
+    subgrid_changed |= naked_subset(subgrid, size);
+  }
+  
+  
   return subgrid_changed;
 }
