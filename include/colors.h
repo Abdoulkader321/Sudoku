@@ -9,13 +9,13 @@
 
 typedef uint64_t colors_t;
 
-/* Initialize and return colors with size bits set */
+/* Initialize and return colors with given size */
 colors_t colors_full(const size_t size);
 
 /* Returns zero */
 colors_t colors_empty(void);
 
-/* Set the color encoded at the index `color_id`, all others are zeros */
+/* Set the color encoded at the specified index `color_id`*/
 colors_t colors_set(const size_t color_id);
 
 /* Set the given color index in colors and return it */
@@ -58,10 +58,10 @@ bool colors_is_singleton(const colors_t colors);
 /* Return the numbers of colors enclosed in the set */
 size_t colors_count(const colors_t colors);
 
-/* Returns the rightmost color of the set (least significant bit) */
+/* Returns the rightmost color of the set */
 colors_t colors_rightmost(const colors_t colors);
 
-/* Returns the rightmost color of the set (most significant bit) */
+/* Returns the rightmost color of the set */
 colors_t colors_leftmost(const colors_t colors);
 
 size_t color_index(colors_t colors);
@@ -69,10 +69,13 @@ size_t color_index(colors_t colors);
 /* Returns a random color chosen from the color set */
 colors_t colors_random(colors_t colors);
 
+/* Apply cross_hatching heuristic on the subgrid */
+bool cross_hatching(colors_t *subgrid[], size_t size);
+
+/* Apply lone_number heuristic on the subgrid */
+bool lone_number(colors_t *subgrid[], size_t size);
+
 /* Returns True if heuristics has been applied on grid, False otherwise */
 bool subgrid_heuristics(colors_t *subgrid[], size_t size);
-
-bool cross_hatching(colors_t *subgrid[], size_t size);
-bool lone_number(colors_t *subgrid[], size_t size);
 
 #endif /* COLORS_H */
