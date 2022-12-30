@@ -276,7 +276,10 @@ static grid_t *grid_solver_2(grid_t *grid, const generator_t mode) {
     }
 
     choice = grid_choice(grid_cpy);
-    assert(choice != NULL);
+    if (choice == NULL) {
+      // This case will normally never happen
+      errx(EXIT_FAILURE, "Any choice is possible\n");
+    }
 
     grid_choice_apply(grid_cpy, choice);
     grid_t *backtracking_res = grid_solver_2(grid_cpy, mode);
@@ -293,7 +296,6 @@ static grid_t *grid_solver_2(grid_t *grid, const generator_t mode) {
       if (is_finished) {
         grid_free(grid);
         grid_choice_free(choice);
-
         return backtracking_res;
       }
     }
@@ -321,6 +323,11 @@ static grid_t *grid_generator(const bool is_unique_mode, const size_t size) {
     remove_some_colors(grid, nb_colors_to_remove);
   } else {
 
+    grid_t *grid_cpy = grid_copy(grid);
+    if (grid_cpy == NULL) {
+      errx(EXIT_FAILURE, "error: Error while doing a deep code of grid\n");
+    }
+
     int tab[grid->size];
     size_t index = 0;
     size_t nb_color_removed = 0;
@@ -329,14 +336,10 @@ static grid_t *grid_generator(const bool is_unique_mode, const size_t size) {
     while (nb_color_removed < nb_color_to_remove) {
 
       choice = remove_one_color(grid, tab, index);
-      grid_t *grid_cpy = grid_copy(grid);
-      if (grid_cpy == NULL) {
-        errx(EXIT_FAILURE, "error: Error while doing a deep code of grid\n");
-      }
+      grid_cpy = grid_copy(grid);
 
       count_solved_grid = 0;
       grid_solver_2(grid_cpy, mode);
-      grid_free(grid_cpy);
 
       if (count_solved_grid == 1) {
         nb_color_removed++;
@@ -353,6 +356,7 @@ static grid_t *grid_generator(const bool is_unique_mode, const size_t size) {
 
   return grid;
 }
+
 
 int main(int argc, char *argv[]) {
 
@@ -492,7 +496,6 @@ int main(int argc, char *argv[]) {
 
       count_solved_grid = 0;
       grid_solver(grid, all ? mode_all : mode_first, program_output);
-      // grid_solver_2(grid, true);
       grid_free(grid);
 
       if (count_solved_grid != 0) {
