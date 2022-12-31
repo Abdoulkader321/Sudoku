@@ -158,6 +158,14 @@ grid_t *grid_copy(const grid_t *grid) {
   return grid_copy;
 }
 
+void grid_deep_copy(grid_t *grid_a, grid_t *grid_b) {
+  for (size_t i = 0; i < grid_a->size; i++) {
+    for (size_t j = 0; j < grid_a->size; j++) {
+      grid_a->cells[i][j] = grid_b->cells[i][j];
+    }
+  }
+}
+
 size_t grid_get_size(const grid_t *grid) {
 
   return grid == NULL ? 0 : grid->size;
