@@ -216,7 +216,7 @@ static size_t grid_solver(grid_t *grid, const mode_t mode, FILE *fd) {
     } else {
       fprintf(fd, "Solution\n");
     }
-    grid_print(grid, false, fd);
+    grid_print(grid, fd);
     // FALL THROUGH
 
   case 2:
@@ -460,7 +460,7 @@ int main(int argc, char *argv[]) {
     fprintf(program_output, "# Generator mode \n");
 
     grid_t *grid = grid_generator(unique, grid_size);
-    grid_print(grid, true, program_output);
+    grid_print(grid, program_output);
     grid_free(grid);
     return EXIT_SUCCESS;
   }
