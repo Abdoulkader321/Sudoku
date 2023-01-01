@@ -204,7 +204,7 @@ static size_t grid_solver(grid_t *grid, const mode_t mode, FILE *fd) {
   grid_t *grid_cpy;
   choice_t *choice;
 
-  size_t res = grid_heuristics(grid);
+  size_t res = grid_heuristics(grid, true);
 
   switch (res) {
 
@@ -263,7 +263,7 @@ static size_t grid_solver_for_generator(grid_t *grid, const generator_t mode) {
   grid_t *grid_cpy;
   choice_t *choice;
 
-  size_t res = grid_heuristics(grid);
+  size_t res = grid_heuristics(grid, false);
 
   switch (res) {
 

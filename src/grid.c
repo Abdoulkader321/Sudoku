@@ -488,7 +488,7 @@ bool subgrid_locked_candidates(grid_t *grid, colors_t *subgrid[],
   return changed;
 }
 
-size_t grid_heuristics(grid_t *grid) {
+size_t grid_heuristics(grid_t *grid, bool use_locked_candidates) {
 
   bool is_fixpoint_not_reached = true;
 
@@ -561,7 +561,7 @@ size_t grid_heuristics(grid_t *grid) {
       }
     }
 
-    if (!is_fixpoint_not_reached) {
+    if (use_locked_candidates && !is_fixpoint_not_reached) {
 
       for (size_t block = 0; block < grid->size; block++) {
 

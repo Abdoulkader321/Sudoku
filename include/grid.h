@@ -56,7 +56,7 @@ bool grid_is_consistent(grid_t *grid);
  * + 1: if the grid is solved
  * + 2: if the grid is inconsistent
  * */
-size_t grid_heuristics(grid_t *grid);
+size_t grid_heuristics(grid_t *grid, bool use_locked_candidates);
 
 /* Free a choice_t data structure */
 void grid_choice_free(choice_t *choice);
