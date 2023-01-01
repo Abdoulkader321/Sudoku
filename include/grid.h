@@ -35,7 +35,7 @@ bool grid_check_size(const size_t size);
 size_t grid_get_size(const grid_t *grid);
 
 /* Writes the `grid` in the file descriptor `fd`. */
-void grid_print(const grid_t *grid, FILE *fd);
+void grid_print(const grid_t *grid, bool is_generator_mode, FILE *fd);
 
 /* Do a Deep copy of `grid` in a new memory area and return it */
 grid_t *grid_copy(const grid_t *grid);

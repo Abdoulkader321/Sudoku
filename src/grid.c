@@ -20,7 +20,7 @@ struct choice_t {
   colors_t color;
 };
 
-void grid_print(const grid_t *grid, FILE *fd) {
+void grid_print(const grid_t *grid, bool is_generator_mode, FILE *fd) {
   size_t grid_size = grid_get_size(grid);
 
   for (size_t i = 0; i < grid_size; i++) {
@@ -33,7 +33,12 @@ void grid_print(const grid_t *grid, FILE *fd) {
       }
 
       if (strlen(colors) == grid_size) {
-        fprintf(fd, "%c", (grid_size == 1) ? color_table[0] : EMPTY_CELL);
+
+        if ((grid_size == 1) && !is_generator_mode) {
+          fprintf(fd, "%c", color_table[0]);
+        } else {
+          fprintf(fd, "%c", EMPTY_CELL);
+        }
 
       } else {
         fprintf(fd, "%s", colors);
@@ -586,7 +591,6 @@ size_t grid_heuristics(grid_t *grid, bool use_locked_candidates) {
 
         if (block % grid_size_sqrt == 0 && !grid_is_consistent(grid)) {
 
-          // grid_print(grid, stdout);
           return status_code_grid_is_inconsistent;
         }
       }
