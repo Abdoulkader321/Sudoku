@@ -79,4 +79,20 @@ void grid_choice_print(const choice_t *choice, FILE *fd);
 /* Return a choice of the smallest set of colors, NULL otherwise */
 choice_t *grid_choice(grid_t *grid);
 
+/* Do a deep copy of grid_b in grid_a */
+void grid_deep_copy(grid_t *grid_a, grid_t *grid_b);
+
+/* Return a new grid of specified size containing full colors except one cell */
+grid_t *get_new_grid(const size_t size);
+
+/* Remove randomly specified number of colors in the grid. Remove means to put
+ * full colors.*/
+void remove_some_colors(grid_t *grid, size_t nb_colors_to_remove);
+
+/* Remove randomly one color in the grid and return it. The cell from which the
+ * color is removed must not be in 'tab'. For example, the cell [2][3] is stored
+ * in 'tab' like this: 23 (2*10 + 3).
+ */
+choice_t *remove_one_color(grid_t *grid, int *tab, size_t tab_size);
+
 #endif /* GRID_H */

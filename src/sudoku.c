@@ -42,7 +42,6 @@ static grid_t *write_first_row_to_grid(char *first_row, int grid_size) {
       grid_set_cell(grid, 0, i, first_row[i]);
     } else {
       warnx("error: wrong character '%c' at line 1!\n", first_row[i]);
-
       return NULL;
     }
   }
@@ -262,17 +261,16 @@ static size_t grid_solver_for_generator(grid_t *grid, const generator_t mode) {
 
   grid_t *grid_cpy;
   choice_t *choice;
-
   size_t res = grid_heuristics(grid, false);
 
   switch (res) {
 
   case 1:
     count_solved_grid++;
-    return 1;
+    // FALL THROUGH
 
   case 2:
-    return 2;
+    return res;
 
   case 0:
 
@@ -282,10 +280,7 @@ static size_t grid_solver_for_generator(grid_t *grid, const generator_t mode) {
     }
 
     choice = grid_choice(grid_cpy);
-    if (choice == NULL) {
-      // This case will normally never happen
-      errx(EXIT_FAILURE, "Any choice is possible\n");
-    }
+    assert(choice != NULL);
 
     grid_choice_apply(grid_cpy, choice);
     size_t backtracking_res = grid_solver_for_generator(grid_cpy, mode);
@@ -314,15 +309,15 @@ static size_t grid_solver_for_generator(grid_t *grid, const generator_t mode) {
     return grid_solver_for_generator(grid, mode);
 
   default:
-    return 2;
+    return res;
   }
 }
 
+/* Generate a grid of specified size */
 static grid_t *grid_generator(const bool is_unique_mode, const size_t size) {
 
   grid_t *grid = get_new_grid(size);
   generator_t mode = is_unique_mode ? mode_unique : mode_not_unique;
-
   grid_solver_for_generator(grid, mode);
 
   if (!is_unique_mode) {
@@ -330,7 +325,8 @@ static grid_t *grid_generator(const bool is_unique_mode, const size_t size) {
     remove_some_colors(grid, nb_colors_to_remove);
   } else {
 
-    int tab[grid->size];
+    int tab[grid->size]; /* Contains index of cells from which colors must not
+                            be removed */
     size_t index = 0;
     size_t nb_color_removed = 0;
     size_t nb_color_to_remove = grid->size * grid->size * FILL_RATE;

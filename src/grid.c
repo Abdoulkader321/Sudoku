@@ -6,6 +6,10 @@
 #include <string.h>
 #include <time.h>
 
+#define status_code_grid_is_not_solved_and_consistent 0
+#define status_code_grid_is_solved 1
+#define status_code_grid_is_inconsistent 2
+
 static bool seed_intialized = false;
 
 /* Internal structure (hiden from outside) to represent a sudoku grid */
@@ -164,8 +168,13 @@ grid_t *grid_copy(const grid_t *grid) {
 }
 
 void grid_deep_copy(grid_t *grid_a, grid_t *grid_b) {
-  for (size_t i = 0; i < grid_a->size; i++) {
-    for (size_t j = 0; j < grid_a->size; j++) {
+  size_t size = grid_a->size;
+  if (size != grid_b->size) {
+    return;
+  }
+
+  for (size_t i = 0; i < size; i++) {
+    for (size_t j = 0; j < size; j++) {
       grid_a->cells[i][j] = grid_b->cells[i][j];
     }
   }
@@ -235,6 +244,7 @@ char *grid_get_cell(const grid_t *grid, const size_t row, const size_t column) {
   return colors2string(grid->cells[row][column], grid->size);
 }
 
+/* Return the square root of 'size' */
 static size_t get_sqrt(const size_t size) {
 
   switch (size) {
@@ -331,16 +341,16 @@ bool grid_is_consistent(grid_t *grid) {
     }
   }
 
-  size_t grid_size_sqrt = get_sqrt(grid->size);
+  size_t size_sqrt = get_sqrt(grid->size);
 
   for (size_t block = 0; block < grid->size; block++) {
     index = 0;
-    size_t row_start = ((block / grid_size_sqrt) * grid_size_sqrt);
+    size_t row_start = ((block / size_sqrt) * size_sqrt);
 
-    for (size_t row = row_start; row < grid_size_sqrt + row_start; row++) {
-      size_t column_start = ((block % grid_size_sqrt) * grid_size_sqrt);
+    for (size_t row = row_start; row < size_sqrt + row_start; row++) {
+      size_t column_start = ((block % size_sqrt) * size_sqrt);
 
-      for (size_t column = column_start; column < grid_size_sqrt + column_start;
+      for (size_t column = column_start; column < size_sqrt + column_start;
            column++) {
         subgrid[index] = &grid->cells[row][column];
         index++;
@@ -370,9 +380,11 @@ static bool grid_is_solved(grid_t *grid) {
   return true;
 }
 
-bool remove_colors_from_row(grid_t *grid, colors_t colors_to_remove, size_t row,
-                            size_t column_excluded_start,
-                            size_t column_excluded_end) {
+/* Remove specified colors from specified row. Colors between specified columns
+ * will not be removed */
+static bool remove_colors_from_row(grid_t *grid, colors_t colors_to_remove,
+                                   size_t row, size_t column_excluded_start,
+                                   size_t column_excluded_end) {
 
   bool changed = false;
 
@@ -394,9 +406,11 @@ bool remove_colors_from_row(grid_t *grid, colors_t colors_to_remove, size_t row,
   return changed;
 }
 
-bool remove_colors_from_column(grid_t *grid, colors_t colors_to_remove,
-                               size_t column, size_t row_excluded_start,
-                               size_t row_excluded_end) {
+/* Remove specified colors from specified column. Colors in specified rows
+ * will not be removed */
+static bool remove_colors_from_column(grid_t *grid, colors_t colors_to_remove,
+                                      size_t column, size_t row_excluded_start,
+                                      size_t row_excluded_end) {
 
   bool changed = false;
 
@@ -418,20 +432,25 @@ bool remove_colors_from_column(grid_t *grid, colors_t colors_to_remove,
   return changed;
 }
 
-bool subgrid_locked_candidates(grid_t *grid, colors_t *subgrid[],
-                               size_t block_start_row,
-                               size_t block_start_column) {
-  size_t grid_size_sqrt = get_sqrt(grid->size);
-  colors_t row_colors[grid_size_sqrt];
-  size_t index = 0;
+/** Return
+ *  + True if 'locked_candidates' heuristic could be applied on subgrid
+ *  + False otherwise
+ */
+static bool subgrid_locked_candidates(grid_t *grid, colors_t *subgrid[],
+                                      size_t block_start_row,
+                                      size_t block_start_column) {
+
+  /* locked candidates on row */;
   bool changed = false;
+  size_t size_sqrt = get_sqrt(grid->size);
+  colors_t row_colors[size_sqrt]; /* colors in the same row of subgrid*/
+  size_t index = 0;
 
   changed |= cross_hatching(subgrid, grid->size);
-  // changed |= lone_number(subgrid, grid->size);
 
-  for (size_t i = 0; i < grid->size; i += grid_size_sqrt) {
+  for (size_t i = 0; i < grid->size; i += size_sqrt) {
     colors_t colors = 0;
-    for (size_t j = 0; j < grid_size_sqrt; j++) {
+    for (size_t j = 0; j < size_sqrt; j++) {
       if (!colors_is_singleton(*subgrid[i + j])) {
         colors = colors_or(colors, *subgrid[i + j]);
       }
@@ -440,9 +459,9 @@ bool subgrid_locked_candidates(grid_t *grid, colors_t *subgrid[],
     index++;
   }
 
-  for (size_t row = 0; row < grid_size_sqrt; row++) {
+  for (size_t row = 0; row < size_sqrt; row++) {
     colors_t colors = 0;
-    for (size_t j = 0; j < grid_size_sqrt; j++) {
+    for (size_t j = 0; j < size_sqrt; j++) {
 
       if (row != j) {
         colors = colors_or(colors, row_colors[j]);
@@ -453,18 +472,18 @@ bool subgrid_locked_candidates(grid_t *grid, colors_t *subgrid[],
     if (colors_to_remove != 0) {
       changed |= remove_colors_from_row(
           grid, colors_to_remove, row + block_start_row, block_start_column,
-          block_start_column + grid_size_sqrt - 1);
+          block_start_column + size_sqrt - 1);
     }
   }
 
-  // changed |= cross_hatching(subgrid, grid->size);
+  /* locked candidates on column */;
 
-  colors_t column_colors[grid_size_sqrt];
+  colors_t column_colors[size_sqrt]; /*colors in the same column of subgrid*/
   index = 0;
 
-  for (size_t i = 0; i < grid_size_sqrt; i++) {
+  for (size_t i = 0; i < size_sqrt; i++) {
     colors_t colors = 0;
-    for (size_t j = 0; j < grid->size; j += grid_size_sqrt) {
+    for (size_t j = 0; j < grid->size; j += size_sqrt) {
       if (!colors_is_singleton(*subgrid[i + j])) {
         colors = colors_or(colors, *subgrid[i + j]);
       }
@@ -473,9 +492,9 @@ bool subgrid_locked_candidates(grid_t *grid, colors_t *subgrid[],
     index++;
   }
 
-  for (size_t column = 0; column < grid_size_sqrt; column++) {
+  for (size_t column = 0; column < size_sqrt; column++) {
     colors_t colors = 0;
-    for (size_t j = 0; j < grid_size_sqrt; j++) {
+    for (size_t j = 0; j < size_sqrt; j++) {
 
       if (column != j) {
         colors = colors_or(colors, column_colors[j]);
@@ -486,7 +505,7 @@ bool subgrid_locked_candidates(grid_t *grid, colors_t *subgrid[],
     if (colors_to_remove != 0) {
       changed |= remove_colors_from_column(
           grid, colors_to_remove, column + block_start_column, block_start_row,
-          block_start_row + grid_size_sqrt - 1);
+          block_start_row + size_sqrt - 1);
     }
   }
 
@@ -497,23 +516,16 @@ size_t grid_heuristics(grid_t *grid, bool use_locked_candidates) {
 
   bool is_fixpoint_not_reached = true;
 
-  const size_t status_code_grid_is_solved = 1;
-  const size_t status_code_grid_is_not_solved_and_consistent = 0;
-  const size_t status_code_grid_is_inconsistent = 2;
-
   while (is_fixpoint_not_reached) {
 
     is_fixpoint_not_reached = false;
-
     colors_t *subgrid[grid->size];
     size_t index;
 
     for (size_t row = 0; row < grid->size; row++) {
-
       index = 0;
 
       for (size_t column = 0; column < grid->size; column++) {
-
         subgrid[index] = &grid->cells[row][column];
         index++;
       }
@@ -525,11 +537,9 @@ size_t grid_heuristics(grid_t *grid, bool use_locked_candidates) {
     }
 
     for (size_t column = 0; column < grid->size; column++) {
-
       index = 0;
 
       for (size_t row = 0; row < grid->size; row++) {
-
         subgrid[index] = &grid->cells[row][column];
         index++;
       }
@@ -540,21 +550,17 @@ size_t grid_heuristics(grid_t *grid, bool use_locked_candidates) {
       }
     }
 
-    size_t grid_size_sqrt = get_sqrt(grid->size);
+    size_t size_sqrt = get_sqrt(grid->size);
 
     for (size_t block = 0; block < grid->size; block++) {
-
       index = 0;
+      size_t row_start = ((block / size_sqrt) * size_sqrt);
 
-      size_t row_start = ((block / grid_size_sqrt) * grid_size_sqrt);
+      for (size_t row = row_start; row < size_sqrt + row_start; row++) {
+        size_t column_start = ((block % size_sqrt) * size_sqrt);
 
-      for (size_t row = row_start; row < grid_size_sqrt + row_start; row++) {
-
-        size_t column_start = ((block % grid_size_sqrt) * grid_size_sqrt);
-
-        for (size_t column = column_start;
-             column < grid_size_sqrt + column_start; column++) {
-
+        for (size_t column = column_start; column < size_sqrt + column_start;
+             column++) {
           subgrid[index] = &grid->cells[row][column];
           index++;
         }
@@ -569,17 +575,15 @@ size_t grid_heuristics(grid_t *grid, bool use_locked_candidates) {
     if (use_locked_candidates && !is_fixpoint_not_reached) {
 
       for (size_t block = 0; block < grid->size; block++) {
-
         colors_t *subgrid[grid->size];
         size_t index = 0;
+        size_t row_start = ((block / size_sqrt) * size_sqrt);
+        size_t column_start = ((block % size_sqrt) * size_sqrt);
 
-        size_t row_start = ((block / grid_size_sqrt) * grid_size_sqrt);
-        size_t column_start = ((block % grid_size_sqrt) * grid_size_sqrt);
+        for (size_t row = row_start; row < size_sqrt + row_start; row++) {
 
-        for (size_t row = row_start; row < grid_size_sqrt + row_start; row++) {
-
-          for (size_t column = column_start;
-               column < grid_size_sqrt + column_start; column++) {
+          for (size_t column = column_start; column < size_sqrt + column_start;
+               column++) {
 
             subgrid[index] = &grid->cells[row][column];
             index++;
@@ -589,8 +593,7 @@ size_t grid_heuristics(grid_t *grid, bool use_locked_candidates) {
         is_fixpoint_not_reached |=
             subgrid_locked_candidates(grid, subgrid, row_start, column_start);
 
-        if (block % grid_size_sqrt == 0 && !grid_is_consistent(grid)) {
-
+        if (block % size_sqrt == 0 && !grid_is_consistent(grid)) {
           return status_code_grid_is_inconsistent;
         }
       }
@@ -693,7 +696,6 @@ grid_t *get_new_grid(const size_t size) {
 void remove_some_colors(grid_t *grid, size_t nb_colors_to_remove) {
 
   size_t size = grid->size;
-
   size_t nb_colors_to_remove_per_line = ceil(nb_colors_to_remove / size);
   colors_t full_colors = colors_full(size);
 
@@ -705,7 +707,6 @@ void remove_some_colors(grid_t *grid, size_t nb_colors_to_remove) {
   for (size_t i = 0; i < size; i++) {
 
     for (size_t j = 0; j < nb_colors_to_remove_per_line; j++) {
-
       size_t index = rand() % size;
       grid->cells[i][index] = full_colors;
     }
@@ -715,7 +716,6 @@ void remove_some_colors(grid_t *grid, size_t nb_colors_to_remove) {
 choice_t *remove_one_color(grid_t *grid, int *tab, size_t tab_size) {
 
   bool is_finished = false;
-
   choice_t *choice = malloc(sizeof(choice_t));
   if (choice == NULL) {
     return NULL;
@@ -730,7 +730,6 @@ choice_t *remove_one_color(grid_t *grid, int *tab, size_t tab_size) {
     row = rand() % grid->size;
     column = rand() % grid->size;
     int tmp = row * 10 + column;
-
     bool is_in_tab = false;
 
     for (size_t i = 0; i < tab_size; i++) {

@@ -131,24 +131,6 @@ colors_t colors_leftmost(const colors_t colors) {
   return colors_set(pos - 1);
 }
 
-size_t color_index(colors_t colors) {
-
-  if (colors == 0) {
-    return colors_empty();
-  }
-
-  size_t pos = 0;
-  bool is_found = false;
-
-  while (!is_found) {
-    if (colors_is_in(colors, pos)) {
-      is_found = true;
-    }
-    pos++;
-  }
-  return pos - 1;
-}
-
 colors_t colors_random(colors_t colors) {
 
   if (colors == 0) {
@@ -251,6 +233,10 @@ bool lone_number(colors_t *subgrid[], size_t size) {
   return subgrid_changed;
 }
 
+/** Return
+ *  + True if 'naked_subset' heuristic could be applied on subgrid
+ *  + False otherwise
+ */
 static bool naked_subset(colors_t *subgrid[], size_t size) {
 
   bool subgrid_changed = false;
@@ -259,33 +245,32 @@ static bool naked_subset(colors_t *subgrid[], size_t size) {
 
     if (!colors_is_singleton(*subgrid[i])) {
 
-      colors_t *tab_index[size];
+      colors_t *not_naked_candidates[size];
       size_t index = 0;
-
-      size_t compteur = 0;
+      size_t counter = 0; /* count the number of naked candidates */
 
       for (size_t j = 0; j < size; j++) {
 
         if (!colors_is_singleton(*subgrid[j])) {
           if (colors_is_subset(*subgrid[j], *subgrid[i])) {
-            compteur++;
+            counter++;
           } else {
-            tab_index[index] = subgrid[j];
+            not_naked_candidates[index] = subgrid[j];
             index++;
           }
         }
       }
 
-      if (compteur == colors_count(*subgrid[i])) {
+      if (counter == colors_count(*subgrid[i])) {
 
         for (size_t j = 0; j < index; j++) {
 
           colors_t colors_removed =
-              colors_discard_B_from_A(*tab_index[j], *subgrid[i]);
+              colors_discard_B_from_A(*not_naked_candidates[j], *subgrid[i]);
 
-          if (!colors_is_equal(colors_removed, *tab_index[j])) {
+          if (!colors_is_equal(colors_removed, *not_naked_candidates[j])) {
             subgrid_changed = true;
-            *tab_index[j] = colors_removed;
+            *not_naked_candidates[j] = colors_removed;
           }
         }
       }
@@ -295,6 +280,10 @@ static bool naked_subset(colors_t *subgrid[], size_t size) {
   return subgrid_changed;
 }
 
+/** Return
+ *  + True if 'hidden_subset' heuristic could be applied on subgrid
+ *  + False otherwise
+ */
 static bool hidden_subset(colors_t *subgrid[], size_t size) {
 
   bool subgrid_changed = false;
@@ -305,7 +294,7 @@ static bool hidden_subset(colors_t *subgrid[], size_t size) {
 
       colors_t reference_colors = *subgrid[i];
 
-      size_t tab_index[size]; /** Contains the index of candidates */
+      size_t tab_index[size]; /** Contains the index of hidden candidates */
       size_t nb_element_tab = 0;
 
       for (size_t j = 0; j < size; j++) {
@@ -342,10 +331,9 @@ bool subgrid_heuristics(colors_t *subgrid[], size_t size) {
   bool subgrid_changed = false;
   subgrid_changed |= cross_hatching(subgrid, size);
   subgrid_changed |= lone_number(subgrid, size);
-  if(subgrid_changed){
+  if (subgrid_changed) {
     subgrid_changed |= naked_subset(subgrid, size);
   }
-  
-  
+
   return subgrid_changed;
 }
