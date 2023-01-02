@@ -5,7 +5,10 @@ all: sudoku
 sudoku:
 	@cd src && $(MAKE)
 	@cp -f src/$(EXE) ./
-	
+
+report: ./report/main.tex ./report/LLP.bib
+	pdflatex ./report/main.tex
+
 clean:
 	@cd src && $(MAKE) clean
 	@rm -f $(EXE) *.txt
