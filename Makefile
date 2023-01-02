@@ -6,8 +6,10 @@ sudoku:
 	@cd src && $(MAKE)
 	@cp -f src/$(EXE) ./
 
-report: ./report/main.tex ./report/LLP.bib
-	pdflatex ./report/main.tex
+report: ./report/report.tex ./report/LLP.bib
+	-@cd report; pdflatex -interaction=nonstopmode report.tex; biber report; pdflatex -interaction=nonstopmode report.tex; 
+	@cd report; rm *.bbl *.aux *.blg *.log *.bcf *.run.xml *.out
+	@rm *.log
 
 clean:
 	@cd src && $(MAKE) clean
@@ -20,4 +22,4 @@ help:
 	@echo "  make clean\t\tRemove all files produced by the compilation"
 	@echo "  make help\t\tDisplay this help"
 
-.PHONY: all clean help
+.PHONY: all report clean help
