@@ -13,7 +13,7 @@
 #include <string.h>
 
 #define GRID_DEFAULT_SIZE 9
-#define FILL_RATE 0.4
+#define EMPTY_CELLS_RATE 0.4
 
 static bool verbose = false;
 static size_t count_solved_grid = 0;
@@ -321,7 +321,7 @@ static grid_t *grid_generator(const bool is_unique_mode, const size_t size) {
   grid_solver_for_generator(grid, mode);
 
   if (!is_unique_mode) {
-    size_t nb_colors_to_remove = ceil(size * size * FILL_RATE);
+    size_t nb_colors_to_remove = ceil(size * size * EMPTY_CELLS_RATE);
     remove_some_colors(grid, nb_colors_to_remove);
   } else {
 
@@ -329,7 +329,7 @@ static grid_t *grid_generator(const bool is_unique_mode, const size_t size) {
                             be removed */
     size_t index = 0;
     size_t nb_color_removed = 0;
-    size_t nb_color_to_remove = grid->size * grid->size * FILL_RATE;
+    size_t nb_color_to_remove = grid->size * grid->size * EMPTY_CELLS_RATE;
 
     while (nb_color_removed < nb_color_to_remove) {
 
